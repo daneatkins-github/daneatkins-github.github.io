@@ -1,30 +1,30 @@
 
 
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <title>Maps Application</title>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Maps Application</title>
 
-    <!-- dependencies -->
-	<link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.2/calcite.css" />
-	<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
-    <script src="https://js.arcgis.com/4.31/"></script>
+<!-- dependencies -->
+<link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.2/calcite.css" />
+<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+<script src="https://js.arcgis.com/4.31/"></script>
     
 	<!-- custom styles / page layout -->
-	<style>
-      html,
-      body {}
+<style>
+html,
+body {}
 	  
-	  .page_div {
-		position:relative;
-		margin-left:auto;
-		margin-right:auto;
+.page_div {
+	position:relative;
+	margin-left:auto;
+	margin-right:auto;
 
-		width:98%; height:98%;
+	width:98%; height:98%;
 	  }
       
-	  .mapDiv {
+.mapDiv {
 		position:absolute; top:0; left:0;
 		float:left;
         padding: 0;
@@ -135,7 +135,7 @@
 	var mapView
 
 	  // function that draws a map object:
-      require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer"], (Map, MapView, FeatureLayer) => {
+      require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/layers/GeoJSONLayer"], (Map, MapView, FeatureLayer, GeoJSONLayer) => {
 	    // map object must exist in global; else use "const map = new map(..."
         map = new Map({
           basemap: "hybrid"
@@ -150,7 +150,12 @@
         });
 		
 		// add layers; 
-		
+			// layer from GeoJSON
+    const long_rides_lyr = new GeoJSONLayer({
+    	url: "https://github.com/daneatkins-github/daneatkins-github.github.io/blob/main/assets/fc/LongRides_2024.geojson"
+  	});
+  	map.add(long_rides_lyr);  // adds the layer to the map
+	      
 			// layer with popup
         const trailsLayer = new FeatureLayer({
           url: "https://crgis.cedar-rapids.org/arcgis/rest/services/Maps/Public_Works/MapServer/77",
@@ -332,7 +337,7 @@
 		<div class="layer_bar">
 
 			<input type="checkbox" class="layer_chk" style="visibility:hidden"   /> <span class="layer_desc" style="font-weight:bold;">Layer Name   </span>&nbsp;&nbsp;Opacity<br>
-			<input type="checkbox" class="layer_chk" id="Trails_lyr_chk" checked /> <span class="layer_desc">Trails  </span> &nbsp;<input id="trails_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
+			<input type="checkbox" class="layer_chk" id="Trails_lyr_chk" /> <span class="layer_desc">Trails  </span> &nbsp;<input id="trails_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
 			<input type="checkbox" class="layer_chk" id="Projects_lyr_chk"       /> <span class="layer_desc">Projects</span>
 		</div>
 		
