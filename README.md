@@ -1,19 +1,13 @@
 
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <title>Maps Application</title>
 
-    <!-- dependencies -->
-	<link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.2/calcite.css" />
-	<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
-    <script src="https://js.arcgis.com/4.31/"></script>
+<!-- dependencies -->
+<link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.2/calcite.css" />
+<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+<script src="https://js.arcgis.com/4.31/"></script>
     
-	<!-- custom styles / page layout -->
- 
- <style>
+<!-- custom styles / page layout -->
+<style>
       html,
       body {}
 	  
@@ -123,25 +117,16 @@
 
 	  hr { width:100%; height:1px; background: #fff; 
 		 margin:0px; padding:0px;}
-
-
-   
 </style>
+
+
 <script>
 /* 
 Some script here...
 */
-
-<h2>Another fresh start!</h2>
-
-A promising approach to experimental web development.<br>
-(Hopefully these pages last longer than AngelFire, or GeoCities!)<br>
-
-
-
-  
-  
 </script>
+
+
 
 <div class="page_div">
   <div class="mapDiv">
@@ -154,14 +139,4 @@ A promising approach to experimental web development.<br>
     </div>
   </div>  <!-- end console -->
 </div> <!-- end page_div -->
-
-
-
-
-
-
-
-</body>
-</html>
-
       
