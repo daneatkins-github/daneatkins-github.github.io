@@ -215,16 +215,12 @@
 		var journal_rend;
 		require(["esri/renderers/UniqueValueRenderer", "esri/symbols/SimpleMarkerSymbol"], 
 		  (UniqueValueRenderer, SimpleMarkerSymbol) => { 
-			let custom_symbol = {
-				type:  "simple-marker",
-				style: "circle", 
-				color: "blue", 
-			}
+
 			
 			journal_rend = {
 				type: "unique-value",
 				field: "type",
-				defaultSymbol: custom_symbol, 
+				defaultSymbol: null, 
 				uniqueValueInfos: [
 					{value: "Bicycling", 
 					   symbol: {
