@@ -359,7 +359,15 @@
 			log_msg(`<br>Basemap Opacity ${basemap_opac.value}`);	
 				map.allLayers.items[0].opacity = (basemap_opac.value/100);
 		});
+
+	      	// when ready actions:
+		// check the width and set popup;
+		mapView.when(() => {
+			var chk_width = document.getElementById('page_div').offsetWidth;
+			log_msg("<br>view.when<br>");
+			width_handler(chk_width);
 		
+		});
 		
 	  // end of require functions
       });
