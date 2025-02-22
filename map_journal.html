@@ -540,10 +540,7 @@ var table_toggle = true;
 	function zoom_to_tblSelect(){
 		table.zoomToSelection();
 	}
-
-
-
-			
+		
 	// prints string to 'console' on the HTML page
 	function log_msg (msg) {
 		document.getElementById("my_console").innerHTML += msg;
@@ -552,29 +549,31 @@ var table_toggle = true;
 		document.getElementById("my_console").innerHTML = 'Logging<br>';
 	}
 
-	window.addEventListener('resize', () => { /* code */ 
+	window.addEventListener('resize', () => {
+           // handling for smaller screens (primarily mobile); 
+	     // heavy-handed approach for "Google Pages" Embedded Content box.
 		var chk_width = document.getElementById('page_div').offsetWidth;
-		clr_con();
-		log_msg(chk_width);
-		
-		var basemap_bar = document.getElementById('basemap_bar');		
-		var sm_page_div = document.getElementById('page_div');
+		var basemap_bar = document.getElementById('basemap_bar');
 		var sm_mapDiv = document.getElementById('mapDiv');
 		
 		if ( chk_width < 500 ){
-		
 			basemap_bar.className = 'basemap_bar_hidden';
 			sm_mapDiv.className = 'mapDiv_smFix';
-			
 			mapView.goTo({
 				center: [-100, 38]
 			})
-			
+			journalLayer.popupTemplate = {           // Popup wihtout image
+                   		title: "{name}",
+				content: "<span style='font-weight:bold'>{name}</span><br>{type}: {datestr}<br>Link: <a href='{link}'>Read here</a>"  // Body-content of popup;
+                   	}
 		} else {
 			basemap_bar.className = 'basemap_bar';
 			sm_mapDiv.className = 'mapDiv';
+			journalLayer.popupTemplate = {           // Full popup, w/ image
+                   		title: "{name}",
+				content: "<span style='font-weight:bold'>{name}</span><br>{type}: {datestr}<br>Link: <a href='{link}'>Read here</a><br><img width='100%' src='https://daneatkins-github.github.io/assets/img/{img}.jpg'>"  // Body-content of popup;
+                   	}
 		}
-	
 	});
 	 
 </script>
