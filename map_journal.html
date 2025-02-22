@@ -571,6 +571,7 @@ var table_toggle = true;
 		clr_con();
 		log_msg('<br>');
 		log_msg(chk_width);
+		var chk_height = document.getElementById('page_div').offsetHeight;
 		
 		var basemap_bar = document.getElementById('basemap_bar');		
 		var sm_page_div = document.getElementById('page_div');
@@ -580,6 +581,7 @@ var table_toggle = true;
 			basemap_bar.className = 'basemap_bar_hidden';
 			sm_mapDiv.className = 'mapDiv_smFix';
 			sm_mapDiv.style.width = chk_width;
+			sm_mapDiv.style.height = chk_height;
 			mapView.goTo({
 				center: [-100, 38]
 			})
@@ -593,6 +595,7 @@ var table_toggle = true;
 			basemap_bar.className = 'basemap_bar';
 			sm_mapDiv.className = 'mapDiv';
 			sm_mapDiv.style.width = '';
+			sm_mapDiv.style.height = '';
 			journalLayer.popupTemplate =
 				   {           // Enable popup
                    title: "{name}",
