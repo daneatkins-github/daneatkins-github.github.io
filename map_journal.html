@@ -16,28 +16,33 @@
       html,
       body {}
 	  
-	  .page_div {
-		position:relative;
-		margin-left:auto;
-		margin-right:auto;
-		
-		
-
-		width:98%; height:98%;
-		min-height:500px;
-		min-width:500px;
+.page_div {
+	position:relative;
+	margin-left:auto;
+	margin-right:auto;
+	width:98%; height:98%;
 	  }
       
-	  .mapDiv {
-		position:absolute; top:0; left:0;
-		float:left;
-        padding: 0;
-        margin:  0;
-        height: 100%;
-        width: 99%;
-		min-height:260px;
-		border: 2px solid black;
+.mapDiv {
+    	position:absolute; top:0; left:0;
+    	float:left;
+    	padding: 0;
+    	margin:  0;
+    	height: 100%;
+    	width: 98%;
+	border: 2px solid black;
       }
+.mapDiv_smFix {
+	position:relative;
+	margin-left:auto;
+	margin-right:auto;
+    	padding: 0;
+    	margin:  0;
+    	height: 250px;
+    	width: 400px;
+	border: 2px solid black;
+      }
+
 	  
 	  .layer_bar {
 		position: absolute; top:10px; left:50%;
@@ -69,6 +74,20 @@
 	  }
 	  
 	  .basemap_bar {
+		position: absolute; top:10px; left:100%;
+		margin-left: -120px;
+		width:100px;
+		
+		border: 2px solid black;
+		background: white;
+		padding: 3px;
+		z-index: 1;
+		
+		font-size:15px !important; 
+	  }
+
+	  .basemap_bar_hidden {
+	    visibility:hidden;
 		position: absolute; top:10px; left:100%;
 		margin-left: -120px;
 		width:100px;
@@ -346,6 +365,7 @@
       });
 		
 	  
+
 	 
 
     
@@ -529,20 +549,37 @@ var table_toggle = true;
 	function log_msg (msg) {
 		document.getElementById("my_console").innerHTML += msg;
 	} 
+	function clr_con (){
+		document.getElementById("my_console").innerHTML = 'Logging<br>';
+	}
 
-function print_it(){
-	log_msg('<br>Map:<br>');
-	log_msg(mapView.spatialReference['wkid']);
-	log_msg('<br>Lyr:<br>');
-	log_msg(journalLayer.spatialReference['wkid']);
-}
+	window.addEventListener('resize', () => { /* code */ 
+		var chk_width = document.getElementById('page_div').offsetWidth;
+		clr_con();
+		log_msg(chk_width);
+		
+		var basemap_bar = document.getElementById('basemap_bar');		
+		var sm_page_div = document.getElementById('page_div');
+		var sm_mapDiv = document.getElementById('mapDiv');
+		
+		if ( chk_width < 500 ){
+		
+			basemap_bar.className = 'basemap_bar_hidden';
+			sm_mapDiv.className = 'mapDiv_smFix';
+		} else {
+			basemap_bar.className = 'basemap_bar';
+			sm_mapDiv.className = 'mapDiv';
+		}
+	
+	});
+	 
 </script>
 	
   </head>
 
   <body>
   <!-- viewport container -->
- <div class="page_div">
+ <div class="page_div" id="page_div">
   
     <!-- map container -->
 	<div class="mapDiv" id="mapDiv">
@@ -553,7 +590,7 @@ function print_it(){
 			<input type="checkbox" class="layer_chk" id="journal_lyr_chk" checked /> <span class="layer_desc">Journals  </span> &nbsp;<input id="journal_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
 		</div>
 		
-		<div class="basemap_bar">
+		<div class="basemap_bar" id="basemap_bar">
   		  <form name="basemap_selector">
 			<input type="radio" id="base_map" name="base_map" value="topo" checked>Topo <br>
 			<input type="radio" id="base_map" name="base_map" value="hybrid">Hybrid <br>
