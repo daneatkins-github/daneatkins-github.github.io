@@ -127,13 +127,13 @@
 	  	  
 	  .console_div {
 	    position:absolute; 
-		top:0; right:0;
+		top:0; left:0;
 		width:10%; height:100%;
 	  
 		border: 2px solid black;
 		background:white;
 		display:inline-block;
-		visibility:hidden;
+		visibility:visible;
 		z-index:3;
 	  }
 	  
@@ -564,6 +564,12 @@ var table_toggle = true;
 	document.addEventListener("DOMContentLoaded", function() {
 		// getting screensize,
 		var chk_width = document.getElementById('page_div').offsetWidth;
+
+		log_msg(chk_width);
+		log_msg('<br>');
+		log_msg(window.screen.width);
+
+		
 		width_handler(chk_width);
 	});
 	
