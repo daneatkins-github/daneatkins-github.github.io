@@ -30,48 +30,10 @@
     	margin:  0;
     	height: 100%;
     	width: 98%;
-	border: 2px solid black;
-      }
-.mapDiv_smFix {
-	position:relative;
-	margin-left:auto;
-	margin-right:auto;
-    	padding: 0;
-    	height: 250px;
-    	width: 400px;
-	border: 2px solid black;
+		border: 2px solid black;
       }
 
-	  
-	  .layer_bar {
-		position: absolute; top:10px; left:50%;
-		margin-left: -100px;
-		width:200px;
-		height:auto;
-		
-		border: 2px solid black;
-		background: white;
-		padding: 3px;
-		
-		font-size:14px !important;
-		visibility:hidden;
-	  }
-	  .layer_desc {
-	    display:inline-block;
-		width:90px;
-		position:relative;
-		top: -1px;
-	  }
-	  .layer_chk {
-		margin-top:6px;
-	  }  
-	  .lyr_slide {
-		width:50px;
-		
-		position:relative;   
-		top:3px;
-	  }
-	  
+  
 	  .basemap_bar {
 		position: absolute; top:10px; left:100%;
 		margin-left: -120px;
@@ -84,64 +46,22 @@
 		
 		font-size:15px !important; 
 	  }
-
-	  .basemap_bar_hidden {
-	    visibility:hidden;
-		position: absolute; top:10px; left:100%;
-		margin-left: -120px;
-		width:100px;
-		
-		border: 2px solid black;
-		background: white;
-		padding: 3px;
-		z-index: 1;
-		
-		font-size:15px !important; 
-	  }
-	  
-	  .bm_slider_container {
-		text-align:center;
-		margin:0px;
-		padding:0px;
-	  }
-	  
-	  .bm_slider {
-		width:80%;
-		text-align:center;
-	  }
-	  
-	  
-	  .bottom_right_bar {
-		position: absolute; bottom:22px; left:100%;
-		margin-left: -150px;
-		width:130px;
-		z-index:0;
-		border: 2px solid black;
-		background: white;
-		padding: 3px;
-		
-		text-align:center;
-		font-size:12px !important;
-		visibility:hidden;
-	  }
-	  	  
+	  	  	  
 	  .console_div {
 	    position:absolute; 
-		top:0; right:0;
+		top:0; left:0;
 		width:10%; height:100%;
 	  
 		border: 2px solid black;
 		background:white;
 		display:inline-block;
-		visibility:hidden;
+		visibility:visible;
 		z-index:3;
 	  }
-	  
 	  .console_log {
 		padding:3px;
 		overflow:auto;
 	  }
-	  
 	  
 	  form {
 		display:inline;
@@ -183,7 +103,6 @@
 		z-index:2;
 		min-height:23px;
 	  }
-
 	  .tableContainer {
 	    position:relative;
 		height:92%;
@@ -193,7 +112,12 @@
 		margin-top:4px;
 	  }
 	  
-	  
+	  .popup_img {
+	    border: 2px solid blue;
+	  }
+	  .popup_img_hidden {
+		visibility:hidden;
+	  }
 	  
 	  
     </style>
@@ -229,13 +153,12 @@
 				}
         });
 		
-		// add layers; 
-		 // define renderer
+		//// Layer Definitions and Add:
+		  // define renderer
 		var journal_rend;
 		require(["esri/renderers/UniqueValueRenderer", "esri/symbols/SimpleMarkerSymbol"], 
 		  (UniqueValueRenderer, SimpleMarkerSymbol) => { 
 
-			
 			journal_rend = {
 				type: "unique-value",
 				field: "type",
@@ -288,11 +211,9 @@
 					   }
 					}
 				]}
-		});
-
+		}); // end of Renderer
 		
-
-		
+		// Add Layer:
 		require(["esri/layers/GeoJSONLayer"], function(GeoJSONLayer){
 			journalLayer = new GeoJSONLayer({
 				url: "https://daneatkins-github.github.io/assets/fc/pts_journal.geojson",
@@ -304,7 +225,7 @@
 			  
 			  popupTemplate: {           // Enable popup
                    title: "{name}",
-				   content: "<span style='font-weight:bold'>{name}</span><br>{type}: {datestr}<br>Link: <a href='{link}'>Read here</a><br><img width='100%' src='https://daneatkins-github.github.io/assets/img/{img}.jpg'>"  // Body-content of popup;
+				   content: "<span style='font-weight:bold'>{name}</span><br>{type}: {datestr}<br>Link: <a href='{link}'>Read here</a><br><div class='popup_img' id='popup_img'><img width='100%' src='https://daneatkins-github.github.io/assets/img/{img}.jpg'></div>"  // Body-content of popup;
                    }
 			});
 			
@@ -314,27 +235,8 @@
 											  heading:false};
 			
 			map.add(journalLayer);  // adds the layer to the map
-			
+		}); // End add layer
 		
-		});
-		
-
-		// toggle layers:
-		  // Create a variable referencing the checkbox node
-		const journalLayerToggle = document.getElementById("journal_lyr_chk");
-
-		  // Listen to the change event for the checkbox
-			  journalLayerToggle.addEventListener("change", () => {
-				// When the checkbox is checked (true), set the layer's visibility to true
-				journalLayer.visible = journalLayerToggle.checked;
-			});
-
-		// opacity layers:
-        const journal_opac = document.getElementById("journal_opac_slide");		
-		journal_opac.addEventListener('change', function(){
-			journalLayer.opacity = (journal_opac.value/100);
-		});
-			
 		
 		// basemap selector:
 		// create a const reference to the radio basemap buttons:
@@ -351,37 +253,22 @@
 				}
 			});
 		});
-	
-		// basemap opacity:
-		 // create listener:
-		const basemap_opac = document.getElementById("bm_opac_slide");
-		basemap_opac.addEventListener('change', function(){
-			log_msg(`<br>Basemap Opacity ${basemap_opac.value}`);	
-				map.allLayers.items[0].opacity = (basemap_opac.value/100);
-		});
-
-	      	// when ready actions:
-		// check the width and set popup;
+		
+		
+		// when ready actions:
+			// check the width and set popup;
 		mapView.when(() => {
 			var chk_width = document.getElementById('page_div').offsetWidth;
-			log_msg("<br>view.when<br>");
 			width_handler(chk_width);
-		
 		});
 		
 	  // end of require functions
       });
 		
-	  
 
-	 
 
-    
-</script>
-
-<!-- additional function calls -->
-<script>
-/// Global Access:
+/// Legend and Table
+// Global References
 var legend;
 var legend_toggle = true;
 
@@ -399,7 +286,6 @@ var table_toggle = true;
 					{
 						layer: journalLayer,
 						title: "Journal"
-					
 					}
 				]
 			});
@@ -424,22 +310,7 @@ var table_toggle = true;
 		syncSelection:true,
 		highlightEnabled:true,
 		layer: journalLayer,
-		container: "tableContainer", 
-        /* actionColumnConfig: {
-            label: "Zoom to feature",
-            icon: "zoom-to-object",
-            callback: ({ params }) => {
-				log_msg("<br>Action.<br>");
-				log_msg(params);
-				mapView.goTo(params.feature);
-				//mapView.goTo(journalLayer.fullExtent);
-				
-				//reactiveUtils.when( () => mapView.stationary === true,	() => {
-				//	mapView.goTo({target: params.feature, zoom: 11});
-				//});	
-
-			} 
-         },   */		
+		container: "tableContainer", 	
 		visibleElements: {
 		  menu: false
 		},
@@ -475,7 +346,6 @@ var table_toggle = true;
 			 }			 
 		]}
 		});
-		
 	table.multipleSelectionEnabled = false;
 
 
@@ -510,7 +380,7 @@ var table_toggle = true;
     });
 		
 		
-		
+	// enable/disable ZoomToButton (custom Form)
 	reactiveUtils.when( () => table.highlightIds.length > 0,	() => {
 					var zoomTo_btn = document.getElementById('zoomTo_btn');
 					zoomTo_btn.disabled= false;
@@ -522,7 +392,11 @@ var table_toggle = true;
 	});	
 		
 		
-	});
+	}); // End require(FeatureTable)
+	
+	function zoom_to_tblSelect(){
+		table.zoomToSelection();
+	}
 
 
 // simple handler to show/hide the div with table.
@@ -546,11 +420,6 @@ var table_toggle = true;
 		}	
 	}
 	
-	function zoom_to_tblSelect(){
-		table.zoomToSelection();
-	}
-
-
 
 			
 	// prints string to 'console' on the HTML page
@@ -558,7 +427,7 @@ var table_toggle = true;
 		document.getElementById("my_console").innerHTML += msg;
 	} 
 	function clr_con (){
-		document.getElementById("my_console").innerHTML = 'Logging<br>';
+		document.getElementById("my_console").innerHTML = 'Logging...<br>';
 	}
 
 	
@@ -568,46 +437,33 @@ var table_toggle = true;
 		width_handler(chk_width);
 	});
 	
-	// OnLoad, determine the width to use:
-	document.addEventListener("DOMContentLoaded", function() {
-		// getting screensize,
-		var chk_width = document.getElementById('page_div').offsetWidth;
-		width_handler(chk_width);
-	});
-	
 	function width_handler(chk_width){
-		clr_con();
-		log_msg('<br>');
-		log_msg(chk_width);
-		var chk_height = document.getElementById('page_div').offsetHeight;
+		// function to hide some css elements on small screens;
+		// called after mapView.when(); and on window resize;
 		
 		var basemap_bar = document.getElementById('basemap_bar');		
-		var sm_page_div = document.getElementById('page_div');
 		var sm_mapDiv = document.getElementById('mapDiv');
 		
 		if ( chk_width <= 500 ){
-			basemap_bar.className = 'basemap_bar_hidden';
-			sm_mapDiv.className = 'mapDiv_smFix';
+			basemap_bar.style.visibility = 'hidden';
 			sm_mapDiv.style.width = chk_width;
-			sm_mapDiv.style.height = chk_height;
+			
 			mapView.goTo({
 				center: [-100, 38]
 			})
-			journalLayer.popupTemplate =
 			
-				   {           // Enable popup
+			journalLayer.popupTemplate =
+				   {           // Popup without image (small screen)
                    title: "{name}",
 				   content: "<span style='font-weight:bold'>{name}</span><br>{type}: {datestr}<br>Link: <a href='{link}'>Read here</a>"  // Body-content of popup;
-                   }
+                   }				   
 		} else {
-			basemap_bar.className = 'basemap_bar';
-			sm_mapDiv.className = 'mapDiv';
+			basemap_bar.style.visibility = 'visible';
 			sm_mapDiv.style.width = '';
-			sm_mapDiv.style.height = '';
 			journalLayer.popupTemplate =
-				   {           // Enable popup
+			       {           // Popup with image
                    title: "{name}",
-				   content: "<span style='font-weight:bold'>{name}</span><br>{type}: {datestr}<br>Link: <a href='{link}'>Read here</a><br><img width='100%' src='https://daneatkins-github.github.io/assets/img/{img}.jpg'>"  // Body-content of popup;
+				   content: "<span style='font-weight:bold'>{name}</span><br>{type}: {datestr}<br>Link: <a href='{link}'>Read here</a><br><div class='popup_img' id='popup_img'><img width='100%' src='https://daneatkins-github.github.io/assets/img/{img}.jpg'></div>"  // Body-content of popup;
                    }
 		}	
 	}
@@ -622,13 +478,6 @@ var table_toggle = true;
   
     <!-- map container -->
 	<div class="mapDiv" id="mapDiv">
-	
-		<div class="layer_bar">
-
-			<input type="checkbox" class="layer_chk" style="visibility:hidden"   /> <span class="layer_desc" style="font-weight:bold;">Layer Name   </span>&nbsp;&nbsp;Opacity<br>
-			<input type="checkbox" class="layer_chk" id="journal_lyr_chk" checked /> <span class="layer_desc">Journals  </span> &nbsp;<input id="journal_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
-		</div>
-		
 		<div class="basemap_bar" id="basemap_bar">
   		  <form name="basemap_selector">
 			<input type="radio" id="base_map" name="base_map" value="topo" checked>Topo <br>
@@ -639,12 +488,6 @@ var table_toggle = true;
 		    <button type="button" onclick="table_handler();" style="width:100px;">Table</button>	  
 		  </form>
 		</div>
-		
-		<div class="bottom_right_bar">
-		  More Tools<br>			
-
-		</div>
-	
 	</div> <!-- end map container -->
 	
 	<!-- righthand pane -->
