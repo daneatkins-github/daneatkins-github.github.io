@@ -565,6 +565,11 @@ var table_toggle = true;
 		
 			basemap_bar.className = 'basemap_bar_hidden';
 			sm_mapDiv.className = 'mapDiv_smFix';
+			
+			mapView.goTo({
+				center: [-100, 38]
+			})
+			
 		} else {
 			basemap_bar.className = 'basemap_bar';
 			sm_mapDiv.className = 'mapDiv';
