@@ -566,13 +566,17 @@ var table_toggle = true;
 		
 		var basemap_bar = document.getElementById('basemap_bar');		
 		var page_div = document.getElementById('page_div');
+		var mapDiv = document.getElementById('mapDiv');
+		
 		if ( chk_width < 500 ){
 		
 			basemap_bar.className = 'basemap_bar_hidden';
 			page_div.className = 'page_div_smFix';
+			mapDiv.className = 'mapDiv_smFix';
 		} else {
 			page_div.className = 'page_div';
 			basemap_bar.className = 'basemap_bar';
+			mapDiv.className = 'mapDiv';
 		}
 	
 	});
