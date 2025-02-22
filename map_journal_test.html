@@ -37,7 +37,6 @@
 	margin-left:auto;
 	margin-right:auto;
     	padding: 0;
-    	margin:  0;
     	height: 250px;
     	width: 400px;
 	border: 2px solid black;
@@ -135,6 +134,7 @@
 		background:white;
 		display:inline-block;
 		visibility:hidden;
+		z-index:3;
 	  }
 	  
 	  .console_log {
@@ -553,25 +553,52 @@ var table_toggle = true;
 		document.getElementById("my_console").innerHTML = 'Logging<br>';
 	}
 
-	window.addEventListener('resize', () => { /* code */ 
+	
+	
+	window.addEventListener('resize', () => {
 		var chk_width = document.getElementById('page_div').offsetWidth;
+		width_handler(chk_width);
+	});
+	
+	// OnLoad, determine the width to use:
+	document.addEventListener("DOMContentLoaded", function() {
+		// getting screensize,
+		var chk_width = document.getElementById('page_div').offsetWidth;
+		width_handler(chk_width);
+	});
+	
+	function width_handler(chk_width){
 		clr_con();
+		log_msg('<br>');
 		log_msg(chk_width);
 		
 		var basemap_bar = document.getElementById('basemap_bar');		
 		var sm_page_div = document.getElementById('page_div');
 		var sm_mapDiv = document.getElementById('mapDiv');
 		
-		if ( chk_width < 500 ){
-		
+		if ( chk_width <= 500 ){
 			basemap_bar.className = 'basemap_bar_hidden';
 			sm_mapDiv.className = 'mapDiv_smFix';
+			
+			mapView.goTo({
+				center: [-100, 38]
+			})
+			journalLayer.popupTemplate =
+			
+				   {           // Enable popup
+                   title: "{name}",
+				   content: "<span style='font-weight:bold'>{name}</span><br>{type}: {datestr}<br>Link: <a href='{link}'>Read here</a>"  // Body-content of popup;
+                   }
 		} else {
 			basemap_bar.className = 'basemap_bar';
 			sm_mapDiv.className = 'mapDiv';
-		}
-	
-	});
+			journalLayer.popupTemplate =
+				   {           // Enable popup
+                   title: "{name}",
+				   content: "<span style='font-weight:bold'>{name}</span><br>{type}: {datestr}<br>Link: <a href='{link}'>Read here</a><br><img width='100%' src='https://daneatkins-github.github.io/assets/img/{img}.jpg'>"  // Body-content of popup;
+                   }
+		}	
+	}
 	 
 </script>
 	
