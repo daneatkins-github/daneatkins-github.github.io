@@ -16,24 +16,28 @@
       html,
       body {}
 	  
-	  .page_div {
-		position:relative;
-		margin-left:auto;
-		margin-right:auto;
-		
-		
-
-		width:89%; height:98%;
+.page_div {
+	position:relative;
+	margin-left:auto;
+	margin-right:auto;
+	width:89%; height:98%;
+	  }
+.page_div_smFix {
+	position:relative;
+	margin-left:auto;
+	margin-right:auto;
+	width:400px;
+	height:300px;
 	  }
       
-	  .mapDiv {
-		position:absolute; top:0; left:0;
-		float:left;
+.mapDiv {
+	position:absolute; top:0; left:0;
+	float:left;
         padding: 0;
         margin:  0;
         height: 100%;
         width: 89%;
-		border: 2px solid black;
+	border: 2px solid black;
       }
 	  
 	  .layer_bar {
@@ -550,11 +554,14 @@ var table_toggle = true;
 		clr_con();
 		log_msg(chk_width);
 		
+		var basemap_bar = document.getElementById('basemap_bar');		
+		var page_div = document.getElementById('page_div');
 		if ( chk_width < 500 ){
-			var basemap_bar = document.getElementById('basemap_bar');
+		
 			basemap_bar.className = 'basemap_bar_hidden';
+			page_div.className = 'page_div_smFix';
 		} else {
-			var basemap_bar = document.getElementById('basemap_bar');
+			page_div.className = 'page_div';
 			basemap_bar.className = 'basemap_bar';
 		}
 	
@@ -566,7 +573,7 @@ var table_toggle = true;
 
   <body>
   <!-- viewport container -->
- <div class="page_div">
+ <div class="page_div" id="page_div">
   
     <!-- map container -->
 	<div class="mapDiv" id="mapDiv">
