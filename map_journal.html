@@ -579,7 +579,7 @@ var table_toggle = true;
 		if ( chk_width <= 500 ){
 			basemap_bar.className = 'basemap_bar_hidden';
 			sm_mapDiv.className = 'mapDiv_smFix';
-			
+			sm_mapDiv.style.width = chk_width;
 			mapView.goTo({
 				center: [-100, 38]
 			})
