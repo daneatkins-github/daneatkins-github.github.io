@@ -1,0 +1,633 @@
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Maps Application</title>
+
+    <!-- dependencies -->
+	<link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.2/calcite.css" />
+	<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.31/"></script>
+    
+	<!-- custom styles / page layout -->
+	<style>
+      html,
+      body {}
+	  
+	  .page_div {
+		position:relative;
+		margin-left:auto;
+		margin-right:auto;
+		
+		
+
+		width:89%; height:98%;
+		min-height:500px;
+		min-width:500px;
+	  }
+      
+	  .mapDiv {
+		position:absolute; top:0; left:0;
+		float:left;
+        padding: 0;
+        margin:  0;
+        height: 100%;
+        width: 89%;
+		min-height:260px;
+		border: 2px solid black;
+      }
+	  
+	  .layer_bar {
+		position: absolute; top:10px; left:50%;
+		margin-left: -100px;
+		width:200px;
+		height:auto;
+		
+		border: 2px solid black;
+		background: white;
+		padding: 3px;
+		
+		font-size:14px !important;
+		visibility:hidden;
+	  }
+	  .layer_desc {
+	    display:inline-block;
+		width:90px;
+		position:relative;
+		top: -1px;
+	  }
+	  .layer_chk {
+		margin-top:6px;
+	  }  
+	  .lyr_slide {
+		width:50px;
+		
+		position:relative;   
+		top:3px;
+	  }
+	  
+	  .basemap_bar {
+		position: absolute; top:10px; left:100%;
+		margin-left: -120px;
+		width:100px;
+		
+		border: 2px solid black;
+		background: white;
+		padding: 3px;
+		z-index: 1;
+		
+		font-size:15px !important; 
+	  }
+
+	  .basemap_bar_hidden {
+	    visibility:hidden;
+		position: absolute; top:10px; left:100%;
+		margin-left: -120px;
+		width:100px;
+		
+		border: 2px solid black;
+		background: white;
+		padding: 3px;
+		z-index: 1;
+		
+		font-size:15px !important; 
+	  }
+	  
+	  .bm_slider_container {
+		text-align:center;
+		margin:0px;
+		padding:0px;
+	  }
+	  
+	  .bm_slider {
+		width:80%;
+		text-align:center;
+	  }
+	  
+	  
+	  .bottom_right_bar {
+		position: absolute; bottom:22px; left:100%;
+		margin-left: -150px;
+		width:130px;
+		z-index:0;
+		border: 2px solid black;
+		background: white;
+		padding: 3px;
+		
+		text-align:center;
+		font-size:12px !important;
+		visibility:hidden;
+	  }
+	  	  
+	  .console_div {
+	    position:absolute; 
+		top:0; right:0;
+		width:10%; height:100%;
+	  
+		border: 2px solid black;
+		background:white;
+		display:inline-block;
+		visibility:visible;
+	  }
+	  
+	  .console_log {
+		padding:3px;
+		overflow:auto;
+	  }
+	  
+	  
+	  form {
+		display:inline;
+		margin:0;
+		padding:0;
+	  }
+
+	  hr { width:100%; height:1px; background: #fff; 
+		 margin:0px; padding:0px;}
+
+	  
+	  .tableDiv {
+		height: 51.25%; 
+		width:99%; 
+		margin-left:auto;
+		margin-right:auto;
+				
+		position:absolute;
+		top:48.75%; 
+
+		border: 2px solid gray;
+		background-color:Linen;
+		visibility:hidden;
+		z-index: 2;
+	  }
+	  
+	  .tableControl {
+	    height:8%;
+		width:100%;
+		display: inline-block;
+		text-align:right;
+		position:relative;
+	  }
+	  .tableControl_content {
+		position:absolute;
+		right:0;
+		top:50%;
+		margin-top:-.9em;
+		z-index:2;
+		min-height:23px;
+	  }
+
+	  .tableContainer {
+	    position:relative;
+		height:92%;
+		width:100%;
+	  }
+	  .tbl_btn {
+		margin-top:4px;
+	  }
+	  
+	  
+	  
+	  
+    </style>
+
+	
+	<!-- custom scripting -->
+    <script>
+	/// Global Access:
+	// define map / mapView:
+	var map;
+	var mapView;
+	
+	// define layers:
+	var journalLayer;
+
+	///////////////////////////
+
+	  // function that draws a map object:
+      require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer"], (Map, MapView, FeatureLayer) => {
+	    // map object must exist in global; else use "const map = new map(..."
+        map = new Map({
+          basemap: "topo"
+        });
+
+		// map view (and css connection)
+        mapView = new MapView({
+          container: "mapDiv", // Reference to the container in html/css
+          map: map,            // Reference to the map object created before the view
+          zoom: 3,             // Sets zoom level based on level of detail (LOD)
+          center: [-108.854709, 44.673518],     // Sets center point of view using longitude,latitude
+		  popup: {
+			dockOptions: {buttonEnabled:false}
+				}
+        });
+		
+		// add layers; 
+		 // define renderer
+		var journal_rend;
+		require(["esri/renderers/UniqueValueRenderer", "esri/symbols/SimpleMarkerSymbol"], 
+		  (UniqueValueRenderer, SimpleMarkerSymbol) => { 
+
+			
+			journal_rend = {
+				type: "unique-value",
+				field: "type",
+				defaultSymbol: null, 
+				uniqueValueInfos: [
+					{value: "Bicycling", 
+					   symbol: {
+						type: "simple-marker", 
+						color: "DarkOrchid", 
+					   }
+					},
+					{value: "Hiking", 
+					   symbol: {
+						type: "simple-marker", 
+						color: "DarkCyan", 
+					   }
+					},
+					{value: "Motorcycling", 
+					   symbol: {
+						type: "simple-marker", 
+						color: "MidnightBlue", 
+					   }
+					},
+					{value: "Conference", 
+					   symbol: {
+						type: "simple-marker", 
+						color: "DodgerBlue", 
+					   }
+					},
+					{value: "Touring", 
+					   symbol: {
+						type: "simple-marker", 
+						color: "LightSalmon", 
+					   }
+					},
+					{value: "Thesis", 
+					   symbol: {
+						type: "simple-marker", 
+						style: "diamond",
+						size:22,
+						color: "Red", 
+					   }
+					},
+					{value: "Dissertation", 
+					   symbol: {
+						type: "simple-marker", 
+						style: "diamond",
+						size:26,
+						color: "Red", 
+					   }
+					}
+				]}
+		});
+
+		
+
+		
+		require(["esri/layers/GeoJSONLayer"], function(GeoJSONLayer){
+			journalLayer = new GeoJSONLayer({
+				url: "https://daneatkins-github.github.io/assets/fc/pts_journal.geojson",
+				spatialReference: {wkid: 102100},
+			  renderer: journal_rend,
+			  title: "Journals",
+			  selectionMode: "single",
+			  outFields: ["*"],          // Fetch all fields for popup
+			  
+			  popupTemplate: {           // Enable popup
+                   title: "{name}",
+				   content: "<span style='font-weight:bold'>{name}</span><br>{type}: {datestr}<br>Link: <a href='{link}'>Read here</a><br><img width='100%' src='https://daneatkins-github.github.io/assets/img/{img}.jpg'>"  // Body-content of popup;
+                   }
+			});
+			
+			mapView.popup.visibleElements = { actionBar:false,
+											  collapseButton:false,
+											  closeButton:false,
+											  heading:false};
+			
+			map.add(journalLayer);  // adds the layer to the map
+			
+		
+		});
+		
+
+		// toggle layers:
+		  // Create a variable referencing the checkbox node
+		const journalLayerToggle = document.getElementById("journal_lyr_chk");
+
+		  // Listen to the change event for the checkbox
+			  journalLayerToggle.addEventListener("change", () => {
+				// When the checkbox is checked (true), set the layer's visibility to true
+				journalLayer.visible = journalLayerToggle.checked;
+			});
+
+		// opacity layers:
+        const journal_opac = document.getElementById("journal_opac_slide");		
+		journal_opac.addEventListener('change', function(){
+			journalLayer.opacity = (journal_opac.value/100);
+		});
+			
+		
+		// basemap selector:
+		// create a const reference to the radio basemap buttons:
+		const basemap_form = document.forms.basemap_selector;
+		const basemap_sel  = basemap_form.querySelector('input[name=base_map]:checked');
+		
+		// for each radio; attach a listener:
+		document.querySelectorAll('input[name="base_map"]').forEach((radio) => {
+			radio.addEventListener('change', (event) => {
+				if (event.target.checked){
+					// update basemap:
+					map.basemap = event.target.value;
+					log_msg(`<br>Base to ${event.target.value}`);
+				}
+			});
+		});
+	
+		// basemap opacity:
+		 // create listener:
+		const basemap_opac = document.getElementById("bm_opac_slide");
+		basemap_opac.addEventListener('change', function(){
+			log_msg(`<br>Basemap Opacity ${basemap_opac.value}`);	
+				map.allLayers.items[0].opacity = (basemap_opac.value/100);
+		});
+		
+		
+	  // end of require functions
+      });
+		
+	  
+
+	 
+
+    
+</script>
+
+<!-- additional function calls -->
+<script>
+/// Global Access:
+var legend;
+var legend_toggle = true;
+
+var table;
+var table_toggle = true;
+
+	function legend_handler() {
+		if(legend_toggle){
+			require(["esri/widgets/Legend"], (Legend) => {
+			legend = new Legend({
+				id: "MyLegend",
+				view: mapView,
+				title: "Map Legend",
+				layerInfos: [
+					{
+						layer: journalLayer,
+						title: "Journal"
+					
+					}
+				]
+			});
+
+			mapView.ui.add(legend, "bottom-left");
+			});
+
+			legend_toggle = false;		
+		
+		} else {
+				legend_toggle = true; 
+				mapView.ui.remove(legend);
+		}	
+	}
+
+
+// the table is drawn onLoad, but in a hidden div
+	require(["esri/widgets/FeatureTable", "esri/core/reactiveUtils"], (FeatureTable, reactiveUtils) => {
+	table = new FeatureTable({
+		id: "MyTable",
+		view: mapView,   // tie to map for selection/highlighting
+		syncSelection:true,
+		highlightEnabled:true,
+		layer: journalLayer,
+		container: "tableContainer", 
+        /* actionColumnConfig: {
+            label: "Zoom to feature",
+            icon: "zoom-to-object",
+            callback: ({ params }) => {
+				log_msg("<br>Action.<br>");
+				log_msg(params);
+				mapView.goTo(params.feature);
+				//mapView.goTo(journalLayer.fullExtent);
+				
+				//reactiveUtils.when( () => mapView.stationary === true,	() => {
+				//	mapView.goTo({target: params.feature, zoom: 11});
+				//});	
+
+			} 
+         },   */		
+		visibleElements: {
+		  menu: false
+		},
+		tableTemplate: {
+			columnTemplates: [
+			{type:"field",
+			 fieldName:"name",
+			 label:"Name",
+			 visible: true,
+			 width:250
+			 },
+ 			{type:"field",
+			 fieldName:"type",
+			 label:"Type",
+			 visible: true,
+			 width:100
+			 },
+ 			{type:"field",
+			 fieldName:"link",
+			 label:"Link",
+			 visible: true,
+			 width:50
+			 },
+			{type:"field",
+			 fieldName:"longitude", 
+			 label:"longitude",
+			 visible: false
+			 },
+			{type:"field",
+			 fieldName:"latitude", 
+			 label:"latitude",
+			 visible: false
+			 }			 
+		]}
+		});
+		
+	table.multipleSelectionEnabled = false;
+
+
+	// add map selection to table selection:
+	mapView.on("immediate-click", async (event) => {
+
+            const response = await mapView.hitTest(event);
+		
+            candidate = response.results.find((result) => {
+              return result.graphic && result.graphic.layer && result.graphic.layer === journalLayer;
+            });
+			
+            // Add the graphic's ObjectId into the collection of highlightIds.
+            // Check that the featureTable.highlightIds collection
+            // does not include an already highlighted feature.
+            if (candidate) {
+              const objectId = candidate.graphic.getObjectId();
+
+              if (table.highlightIds.includes(objectId)) {
+                // Remove feature from current selection if feature
+                // is already added to highlightIds collection
+				log_msg('<br> remove id ');
+				log_msg(objectId);
+                table.highlightIds.remove(objectId);
+              } else {
+                // Add this feature to the featureTable highlightIds collection
+				log_msg('<br> add id ');
+				log_msg(objectId);
+                table.highlightIds.add(objectId);
+              }
+            }
+    });
+		
+		
+		
+	reactiveUtils.when( () => table.highlightIds.length > 0,	() => {
+					var zoomTo_btn = document.getElementById('zoomTo_btn');
+					zoomTo_btn.disabled= false;
+	});	
+	
+	reactiveUtils.when( () => table.highlightIds.length == 0,	() => {
+					var zoomTo_btn = document.getElementById('zoomTo_btn');
+					zoomTo_btn.disabled= true;
+	});	
+		
+		
+	});
+
+
+// simple handler to show/hide the div with table.
+	function table_handler() {
+		if(table_toggle){
+			var tableDiv = document.getElementById('tableDiv');
+			tableDiv.style.visibility = 'visible';
+
+			var mapDiv = document.getElementById('mapDiv');
+			mapDiv.style.height = '48%';
+		
+			table_toggle = false;		
+		} else {
+				table_toggle = true; 
+				
+				var tableDiv = document.getElementById('tableDiv');
+				tableDiv.style.visibility = 'hidden';
+
+				var mapDiv = document.getElementById('mapDiv');
+				mapDiv.style.height = '100%';
+		}	
+	}
+	
+	function zoom_to_tblSelect(){
+		table.zoomToSelection();
+	}
+
+
+
+			
+	// prints string to 'console' on the HTML page
+	function log_msg (msg) {
+		document.getElementById("my_console").innerHTML += msg;
+	} 
+	function clr_con (){
+		document.getElementById("my_console").innerHTML = 'Logging<br>';
+	}
+
+	window.addEventListener('resize', () => { /* code */ 
+		var chk_width = document.getElementById('mapDiv').offsetWidth;
+		clr_con();
+		log_msg(chk_width);
+		
+		if ( chk_width < 500 ){
+			var basemap_bar = document.getElementById('basemap_bar');
+			basemap_bar.className = 'basemap_bar_hidden';
+		} else {
+			var basemap_bar = document.getElementById('basemap_bar');
+			basemap_bar.className = 'basemap_bar';
+		}
+	
+	});
+	 
+</script>
+	
+  </head>
+
+  <body>
+  <!-- viewport container -->
+ <div class="page_div">
+  
+    <!-- map container -->
+	<div class="mapDiv" id="mapDiv">
+	
+		<div class="layer_bar">
+
+			<input type="checkbox" class="layer_chk" style="visibility:hidden"   /> <span class="layer_desc" style="font-weight:bold;">Layer Name   </span>&nbsp;&nbsp;Opacity<br>
+			<input type="checkbox" class="layer_chk" id="journal_lyr_chk" checked /> <span class="layer_desc">Journals  </span> &nbsp;<input id="journal_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
+		</div>
+		
+		<div class="basemap_bar" id="basemap_bar">
+  		  <form name="basemap_selector">
+			<input type="radio" id="base_map" name="base_map" value="topo" checked>Topo <br>
+			<input type="radio" id="base_map" name="base_map" value="hybrid">Hybrid <br>
+			<input type="radio" id="base_map" name="base_map" value="streets">Streets<br>
+			<div class="bm_slider_container">
+				<hr />
+				 Opacity: <br>
+			   <input class="bm_slider" id="bm_opac_slide" type="range" min="0" max="100" value="100">
+			</div>
+			    <hr />
+			<button type="button" onclick="legend_handler();" style="width:100px;">Legend</button>
+		    <button type="button" onclick="table_handler();" style="width:100px;">Table</button>	  
+		  </form>
+		</div>
+		
+		<div class="bottom_right_bar">
+		  More Tools<br>			
+
+		</div>
+	
+	</div> <!-- end map container -->
+	
+	<!-- righthand pane -->
+  	<div class="console_div" id="console_div">
+		<div class="console_log" id="my_console">
+		Logging....
+		</div>
+	</div>
+
+	<!-- table pane -->
+	<div id="tableDiv" name="tableDiv" class="tableDiv">
+		<div class="tableControl">
+			<div class="tableControl_content">
+				<button type="button" onclick="zoom_to_tblSelect();" class="tbl_btn disabled" disabled="disabled" id="zoomTo_btn">Zoom to Selection</button>	  
+			</div>
+		</div>
+		
+		<div id="tableContainer" class="tableContainer">
+				
+		</div>
+	</div>
+
+
+	
+</div> <!-- end pageDiv --> 
+
+
+
+  </body>
+</html>
