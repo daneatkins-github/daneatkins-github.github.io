@@ -568,15 +568,12 @@ var table_toggle = true;
 		log_msg(chk_width);
 		log_msg('<br>');
 		log_msg(window.screen.width);
-
+		log_msg('...');
 		
 		width_handler(chk_width);
 	});
 	
 	function width_handler(chk_width){
-		clr_con();
-		log_msg('<br>');
-		log_msg(chk_width);
 		
 		var basemap_bar = document.getElementById('basemap_bar');		
 		var sm_page_div = document.getElementById('page_div');
