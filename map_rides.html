@@ -21,7 +21,7 @@
 		position:relative;
 		margin-left:auto;
 		margin-right:auto;
-		width:98%; height:98%;
+		width:99%; height:98%;
 	  }
       
 	  .mapDiv {
@@ -30,7 +30,7 @@
     	padding: 0;
     	margin:  0;
     	height: 100%;
-    	width: 98%;
+    	width: 99%;
 		border: 2px solid black;
       }
 
@@ -51,7 +51,7 @@
 /* Custom Console */
 	  .console_div {
 	    position:absolute; 
-		top:0; left:0;
+		top:0; right:0;
 		width:10%; height:100%;
 	  
 		border: 2px solid black;
@@ -77,7 +77,7 @@
 /* Custom 'Table & Button Widget' */	  
 	  .tableDiv {
 		height: 51.25%; 
-		width:98%; 
+		width:99%; 
 		margin-left:auto;
 		margin-right:auto;
 				
@@ -92,11 +92,32 @@
 	  
 	  .tableControl {
 	    height:8%;
+		min-height:22px;
 		width:100%;
 		display: inline-block;
 		text-align:right;
 		position:relative;
 	  }
+	  
+	  .tableControl_left {
+		position:absolute;
+		height:100%;
+		left:0;
+		z-index:2;
+	  }
+	  .tbl_tab {
+		height:100%;
+		width:140px;
+		float: left;
+		border:1px solid black; border-radius: 5px;
+		outline: none;
+		cursor: pointer;
+		font-size: 18px;
+		text-align:center;
+	  }
+
+
+	  
 	  .tableControl_content {
 		position:absolute;
 		right:0;
@@ -125,8 +146,9 @@
 	  
 /* Custom 'Layer Widget' */	  
 	  .layer_bar {
-		position: absolute; top:10px; left:50%;
-		margin-left: -100px;
+		visibility:visible;
+		position: absolute; left:1px; bottom:1px;
+		
 		width:200px;
 		height:auto;
 		
@@ -163,6 +185,7 @@
 	var mapView;
 	
 	// define layers:
+	var ride_attr;
 	var ride_2020_Layer;
 	var ride_2021_Layer;
 	var ride_2022_Layer;
@@ -171,8 +194,8 @@
 	///////////////////////////
 
 	  // function that draws a map object:
-      require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/symbols/SimpleLineSymbol"], 
-	    (Map, MapView, FeatureLayer, SimpleLineSymbol) => {
+      require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/symbols/SimpleLineSymbol", "esri/PopupTemplate"], 
+	    (Map, MapView, FeatureLayer, SimpleLineSymbol, PopupTemplate) => {
 	    
 		// map object must exist in global; else use "const map = new map(..."
         map = new Map({
@@ -194,6 +217,18 @@
 		//// Layer Definitions and Add:
 		  // define renderers
 		
+		const ride_2016_sym = {"type": "simple", 
+							   "symbol":{ type: "simple-line", style: "solid",
+				                          color: "#1b9e77",    width: "3px"		}};
+		const ride_2017_sym = {"type": "simple", 
+							   "symbol":{ type: "simple-line", style: "solid",
+				                          color: "#7570b3",    width: "3px"		}};
+		const ride_2018_sym = {"type": "simple", 
+							   "symbol":{ type: "simple-line", style: "solid",
+				                          color: "#d95f02",    width: "3px"		}};
+		const ride_2019_sym = {"type": "simple", 
+							   "symbol":{ type: "simple-line", style: "solid",
+				                          color: "#e7298a",    width: "3px"		}};
 		const ride_2020_sym = {"type": "simple", 
 							   "symbol":{ type: "simple-line", style: "solid",
 				                          color: "#1b9e77",    width: "3px"		}};
@@ -206,56 +241,139 @@
 		const ride_2023_sym = {"type": "simple", 
 							   "symbol":{ type: "simple-line", style: "solid",
 				                          color: "#e7298a",    width: "3px"		}};
-
+		const ride_2024_sym = {"type": "simple", 
+							   "symbol":{ type: "simple-line", style: "solid",
+				                          color: "#e7298a",    width: "3px"		}};
+										  
+		  // define popup:
+		  const cust_popup = new PopupTemplate({
+			outFields:["*"],
+			title: "",
+			content: "<span style='font-weight:bold;'>{Act_Name}</span><br>Date: {Date_Day}/{Date_Mon}/{Date_Yr}<br>Distance: {Dist_Mi} miles<br>Speed: {SpeedAvg} mph;  Max: {SpeedMax} mph"  // Body-content of popup;
+		  });
 		
+
 		// Add Layers:
 		require(["esri/layers/GeoJSONLayer"], function(GeoJSONLayer){
+		
+			ride_attr = new GeoJSONLayer({
+				url: "https://daneatkins-github.github.io/assets/fc/Ride_Start_Attr.geojson",
+				spatialReference: {wkid: 102100},
+				renderer:null,
+			  title: "Ride Attr",
+			  selectionMode: "single",
+			  outFields: ["*"],
+			  popupTemplate: cust_popup
+			});
+		
+		
+			ride_2016_Layer = new GeoJSONLayer({
+				url: "https://daneatkins-github.github.io/assets/fc/2016.geojson",
+				spatialReference: {wkid: 102100},
+				renderer: ride_2016_sym,
+			  title: "2016 Rides",
+			  selectionMode: "single",
+			  outFields: ["*"],
+			  popupTemplate: cust_popup
+			});
+			
+			ride_2017_Layer = new GeoJSONLayer({
+				url: "https://daneatkins-github.github.io/assets/fc/2017.geojson",
+				spatialReference: {wkid: 102100},
+				renderer: ride_2017_sym,
+			  title: "2017 Rides",
+			  selectionMode: "single",
+			  outFields: ["*"],
+			  popupTemplate: cust_popup
+			});
+			
+			ride_2018_Layer = new GeoJSONLayer({
+				url: "https://daneatkins-github.github.io/assets/fc/2018.geojson",
+				spatialReference: {wkid: 102100},
+				renderer: ride_2018_sym,
+			  title: "2018 Rides",
+			  selectionMode: "single",
+			  outFields: ["*"],
+			  popupTemplate: cust_popup
+			});
+
+			ride_2019_Layer = new GeoJSONLayer({
+				url: "https://daneatkins-github.github.io/assets/fc/2019.geojson",
+				spatialReference: {wkid: 102100},
+				renderer: ride_2019_sym,
+			  title: "2019 Rides",
+			  selectionMode: "single",
+			  outFields: ["*"],
+			  popupTemplate: cust_popup
+			});
+			
 			ride_2020_Layer = new GeoJSONLayer({
-				url: "https://daneatkins-github.github.io/assets/fc/rides_2020.geojson",
+				url: "https://daneatkins-github.github.io/assets/fc/2020.geojson",
 				spatialReference: {wkid: 102100},
 				renderer: ride_2020_sym,
 			  title: "2020 Rides",
 			  selectionMode: "single",
-			  outFields: ["*"]
+			  outFields: ["*"],
+			  popupTemplate: cust_popup
 			});
 			
 			ride_2021_Layer = new GeoJSONLayer({
-				url: "https://daneatkins-github.github.io/assets/fc/rides_2021.geojson",
+				url: "https://daneatkins-github.github.io/assets/fc/2021.geojson",
 				spatialReference: {wkid: 102100},
 				renderer: ride_2021_sym,
 			  title: "2021 Rides",
 			  selectionMode: "single",
-			  outFields: ["*"]
+			  outFields: ["*"],
+			  popupTemplate: cust_popup
 			});
 
 			ride_2022_Layer = new GeoJSONLayer({
-				url: "https://daneatkins-github.github.io/assets/fc/rides_2022.geojson",
+				url: "https://daneatkins-github.github.io/assets/fc/2022.geojson",
 				spatialReference: {wkid: 102100},
 				renderer: ride_2022_sym,
 			  title: "2022 Rides",
-
 			  selectionMode: "single",
-			  outFields: ["*"]
+			  outFields: ["*"],
+			  popupTemplate: cust_popup
 			});
 
 			ride_2023_Layer = new GeoJSONLayer({
-				url: "https://daneatkins-github.github.io/assets/fc/rides_2023.geojson",
+				url: "https://daneatkins-github.github.io/assets/fc/2023.geojson",
 				spatialReference: {wkid: 102100},
 				renderer: ride_2023_sym,
 			  title: "2023 Rides",
 			  selectionMode: "single",
-			  outFields: ["*"]
+			  outFields: ["*"],
+			  popupTemplate: cust_popup
 			});
+
+			ride_2024_Layer = new GeoJSONLayer({
+				url: "https://daneatkins-github.github.io/assets/fc/2024.geojson",
+				spatialReference: {wkid: 102100},
+				renderer: ride_2024_sym,
+			  title: "2024 Rides",
+			  selectionMode: "single",
+			  outFields: ["*"],
+			  popupTemplate: cust_popup
+			});
+			
+
 			
 			mapView.popup.visibleElements = { actionBar:false,
 											  collapseButton:false,
 											  closeButton:false,
 											  heading:false};
 			
+			map.add(ride_2016_Layer);  // adds the layer to the map
+			map.add(ride_2017_Layer);  // adds the layer to the map
+			map.add(ride_2018_Layer);  // adds the layer to the map
+			map.add(ride_2019_Layer);  // adds the layer to the map			map.add(ride_2020_Layer);  // adds the layer to the map
 			map.add(ride_2020_Layer);  // adds the layer to the map
 			map.add(ride_2021_Layer);  // adds the layer to the map
 			map.add(ride_2022_Layer);  // adds the layer to the map
 			map.add(ride_2023_Layer);  // adds the layer to the map
+			map.add(ride_2024_Layer);  // adds the layer to the map
+			map.add(ride_attr);
 
 			// subroutines for FeatureEffect and Extent
 			require(["esri/layers/support/FeatureEffect", "esri/views/layers/LayerView", "esri/geometry/Extent", "esri/rest/support/Query"],
@@ -276,11 +394,6 @@
 		}); // End add layer
 
 
-
-
-
-		
-		
 		// basemap selector:
 		// create a const reference to the radio basemap buttons:
 		const basemap_form = document.forms.basemap_selector;
@@ -297,8 +410,7 @@
 			});
 		});
 		
-		
-
+	
 
 		// when ready actions:
 			// check the width and set popup;
@@ -312,18 +424,19 @@
 		const ride_2020_LayerToggle = document.getElementById("rides_2020_lyr_chk");
 		const ride_2021_LayerToggle = document.getElementById("rides_2021_lyr_chk");
 		const ride_2022_LayerToggle = document.getElementById("rides_2022_lyr_chk");
-		const ride_2023_LayerToggle = document.getElementById("rides_2023_lyr_chk");		
+		const ride_2023_LayerToggle = document.getElementById("rides_2023_lyr_chk");
+
+
 
 		  // Listen to the change event for the checkboxs
 			ride_2020_LayerToggle.addEventListener("change", () => {
-				log_msg("20 chg<br>");
-				ride_2020_Layer.visible = ride_2020_LayerToggle.checked;	});
+				ride_2020_Layer.visible = ride_2020_LayerToggle.checked; });
 			ride_2021_LayerToggle.addEventListener("change", () => {
-				ride_2021_Layer.visible = ride_2021_LayerToggle.checked;	});
+				ride_2021_Layer.visible = ride_2021_LayerToggle.checked; });
 			ride_2022_LayerToggle.addEventListener("change", () => {
-				ride_2022_Layer.visible = ride_2022_LayerToggle.checked;	});
+				ride_2022_Layer.visible = ride_2022_LayerToggle.checked; });
 			ride_2023_LayerToggle.addEventListener("change", () => {
-				ride_2023_Layer.visible = ride_2023_LayerToggle.checked;	});
+				ride_2023_Layer.visible = ride_2023_LayerToggle.checked; });
 
 			
 		// opacity layers:
@@ -402,103 +515,214 @@ var table_toggle = true;
 
 
 // the table is drawn onLoad, but in a hidden div
-	require(["esri/widgets/FeatureTable", "esri/core/reactiveUtils"], (FeatureTable, reactiveUtils) => {
-	table = new FeatureTable({
-		id: "MyTable",
-		view: mapView,   // tie to map for selection/highlighting
-		syncSelection:true,
-		highlightEnabled:true,
-		layer: ride_2020_Layer,
-		container: "tableContainer", 	
-		visibleElements: {
-		  menu: false
-		},
-		tableTemplate: {
-			columnTemplates: [
-			{type:"field",
-			 fieldName:"Name",
-			 label:"Name",
-			 visible: true,
-			 width:100
-			 },
- 			{type:"field",
-			 fieldName:"Desc",
-			 label:"Description",
-			 visible: true,
-			 width:150
-			 },
-			 {type:"field",
-			 fieldName:"Dist_Mile",
-			 label:"Miles",
-			 visible: true,
-			 width:50
-			 },
- 			{type:"field",
-			 fieldName:"MovTime_Str",
-			 label:"Time",
-			 visible: true,
-			 width:50
-			 },
- 			{type:"field",
-			 fieldName:"Avg_Spe",
-			 label:"Speed",
-			 visible: true,
-			 width:50
-			 }			 
-		]}
-		});
-	table.multipleSelectionEnabled = false;
+require(["esri/widgets/FeatureTable", "esri/core/reactiveUtils", "esri/rest/support/Query"], (FeatureTable, reactiveUtils, Query) => {
+	
+	// wait for mapview to finish loading completely -- prevents empty tableview	
+	reactiveUtils.when( () => mapView.updating == false,	() => {
+	
+		// check that we haven't drawn the table, yet
+		if (typeof table == "undefined"){
+			table = new FeatureTable({
+				id: "MyTable",
+				view: mapView,   // tie to map for selection/highlighting
+				//syncSelection:true,
+				highlightEnabled:true,
+				layer: ride_attr,
+				container: "tableContainer", 	
+				visibleElements: {
+				  menu: false
+				},
+				tableTemplate: {
+					columnTemplates: [
+					{type:"field",
+					 fieldName:"Act_Name",
+					 label:"Name",
+					 visible: true,
+					 width:100
+					 },
+					 {type:"field",
+					 fieldName:"Date_Str",
+					 label:"Date-Time (Z)",
+					 visible: true,
+					 width:50
+					 },
+					{type:"field",
+					 fieldName:"Act_Desc",
+					 label:"Description",
+					 visible: true,
+					 width:150
+					 },
+					 {type:"field",
+					 fieldName:"Dist_Mi",
+					 label:"Miles",
+					 visible: true,
+					 width:50
+					 },
+					{type:"field",
+					 fieldName:"MovTimeS",
+					 label:"Moving Time",
+					 visible: true,
+					 width:50
+					 },
+					{type:"field",
+					 fieldName:"Speed_Avg",
+					 label:"Speed",
+					 visible: true,
+					 width:50
+					 },
+					 {type:"field",
+					 fieldName:"Speed_Max",
+					 label:"Max Speed",
+					 visible: true,
+					 width:50
+					 },
+					 {type:"field",
+					 fieldName:"ElevGain",
+					 label:"Elevation (ft)",
+					 visible: true,
+					 width:50
+					 },
+					 {type:"field",
+					 fieldName:"ElevHigh",
+					 label:"Altitude (ft)",
+					 visible: true,
+					 width:50
+					 },
+					 {type:"field",
+					 fieldName:"Bike_Nm",
+					 label:"Bike",
+					 visible: true,
+					 width:50
+					 },
+					 {type:"field",
+					 fieldName:"Temp",
+					 label:"Temperature",
+					 visible: true,
+					 width:50
+					 }
+				]}
+				});
+			table.multipleSelectionEnabled = false;
+		}
+	});	
 
 
-	// add map selection to table selection:
-	mapView.on("immediate-click", async (event) => {
 
-            const response = await mapView.hitTest(event);
-		
-            candidate = response.results.find((result) => {
-              return result.graphic && result.graphic.layer && result.graphic.layer === centLayer;
-            });
+	// trying definition query based on dropdown 'select'
+	const year_select = document.getElementById('tbl_yr');
+	const tbl_filter_by = document.getElementById('tbl_select_chk');
+	
+    year_select.addEventListener('change', function(event) {
+		// user changed years; override 'filter by select'
+		tbl_filter_by.checked = false;
+				
+				const selected_yr = event.target.value;
+				log_msg(selected_yr);
+				
+				var query = new Query();
+				var where_q = `Date_Yr = ${selected_yr}`
+				
+					log_msg("<br>");
+					log_msg(where_q);
+				
+					if (selected_yr == "All"){
+						where_q = "1=1"
+						ride_attr.definitionExpression = "1=1";
+					} else {
+	
+						log_msg("bb<br>");
+						log_msg(where_q);	
+						
+						query.where = where_q
+						
+						
+						ride_attr.queryFeatures(query).then((results) => {
+							log_msg("<br>res...");
+							ride_attr.definitionExpression = where_q;
+							log_msg('<br>fin');
+							
+						});
+						
+					}
+					
+				table.refresh();
+	});
+
+	// filter table by selection?
+		tbl_filter_by.addEventListener('change', () => {
+			table.filterBySelectionEnabled = tbl_filter_by.checked
 			
-            // Add the graphic's ObjectId into the collection of highlightIds.
-            // Check that the featureTable.highlightIds collection
-            // does not include an already highlighted feature.
-            if (candidate) {
-              const objectId = candidate.graphic.getObjectId();
+		});
+	
+	// trying mapview click filter table
+	mapView.on("click", async (event) => {
+		
+	  const hitResults = await mapView.hitTest(event);
+	  const feature = hitResults.results.find(result => result.graphic && (result.graphic.layer === ride_2016_Layer || result.graphic.layer === ride_2017_Layer || 
+																		   result.graphic.layer === ride_2018_Layer || result.graphic.layer === ride_2019_Layer || 
+																		   result.graphic.layer === ride_2020_Layer || result.graphic.layer === ride_2021_Layer || 
+																		   result.graphic.layer === ride_2022_Layer || result.graphic.layer === ride_2023_Layer || 
+																		   result.graphic.layer === ride_2024_Layer)  );
 
-              if (table.highlightIds.includes(objectId)) {
-                // Remove feature from current selection if feature
-                // is already added to highlightIds collection
-				log_msg('<br> remove id ');
-				log_msg(objectId);
-                table.highlightIds.remove(objectId);
-              } else {
-                // Add this feature to the featureTable highlightIds collection
-				log_msg('<br> add id ');
-				log_msg(objectId);
-                table.highlightIds.add(objectId);
-              }
-            }
-    });
+	  if (feature) {
 		
+		ride_attr.definitionExpression = "1=1";
 		
-	// enable/disable ZoomToButton (custom Form)
-	reactiveUtils.when( () => table.highlightIds.length > 0,	() => {
-					var zoomTo_btn = document.getElementById('zoomTo_btn');
-					zoomTo_btn.disabled= false;
-	});	
+
+		const feature_key = feature.graphic.attributes.KEY;
+		var   feature_yr = feature.graphic.attributes.Date_Yr;
+		log_msg(feature_key);
+		log_msg('hit layer<br>');
+		
+		if (year_select.value != "All"){
+			// table is filtered by year:
+			if (year_select.value != feature_yr) {
+				// map-selection is not in current filtered (year) table.  Set filters to 'year' to match map select:
+					//document.getElementById("tbl_yr").value = feature_yr
+				
+				// easier mode: reset filter to 'all'
+				year_select.selectedIndex = 0;
+				
+			}
+		}
+
+		// build the where, add years if necessary:
+		var where_q = `KEY = ${feature_key}`;
+			
+			var query = new Query();
+
+				log_msg(where_q);
+				
+				query.where = where_q;
+				query.outFields = ["__OBJECTID", "Act_Name"];
+
+				ride_attr.queryFeatures(query).then((results) => { 
+					log_msg(results.features[0].attributes.__OBJECTID);
+					
+					table.highlightIds.removeAll()
+					table.highlightIds.add(results.features[0].attributes.__OBJECTID)
+					log_msg('<br>');
+					log_msg(table.highlightIds.length);
+				});
+	  }
+	});
+
+
+
+
+
+}); // End require(FeatureTable)
 	
-	reactiveUtils.when( () => table.highlightIds.length == 0,	() => {
-					var zoomTo_btn = document.getElementById('zoomTo_btn');
-					zoomTo_btn.disabled= true;
-	});	
-		
-		
-	}); // End require(FeatureTable)
-	
+
 	function zoom_to_tblSelect(){
 		table.zoomToSelection();
 	}
+	
 
+	function do_stuff(){
+		log_msg(table.highlightIds.length);
+	}
+	
 
 // simple handler to show/hide the div with table.
 	function table_handler() {
@@ -521,7 +745,19 @@ var table_toggle = true;
 		}	
 	}
 	
-
+var layer_toggle = true;
+// simple handler to show/hide div with Layer controls
+	function layer_handler() {
+		if(layer_toggle){
+			var layerDiv = document.getElementById('layer_bar');
+			layerDiv.style.visibility = 'hidden';
+			layer_toggle = false;		
+		} else {
+			var layerDiv = document.getElementById('layer_bar');
+			layerDiv.style.visibility = 'visible';
+			layer_toggle = true;		
+		}	
+	}
 			
 	// prints string to 'console' on the HTML page
 	function log_msg (msg) {
@@ -549,26 +785,21 @@ var table_toggle = true;
 			basemap_bar.style.visibility = 'hidden';
 			sm_mapDiv.style.width = chk_width;
 			
-			mapView.goTo({
-				center: [-100, 38]
-			})
-			
-			centLayer.popupTemplate =
-				   {           // Popup without image (small screen)
-                   title: "{name}",
-				   content: "<span style='font-weight:bold'>{name}</span><br>{Date_Str}, 2024"  // Body-content of popup;
-                   }				   
 		} else {
 			basemap_bar.style.visibility = 'visible';
 			sm_mapDiv.style.width = '';
-			centLayer.popupTemplate =
-			       {           // Popup with image
-                   title: "{name}",
-				   content: "<span style='font-weight:bold'>{name}</span><br>{Date_Str}, 2024: {Dist} miles<br><a href='https://sites.google.com/site/daneatkinsportfolio/cam_2024'>Read here</a><br><div class='popup_img' id='popup_img'><img width='100%' src='https://daneatkins-github.github.io/assets/img/Cent_2024/{Img}.jpg'></div>"  // Body-content of popup;
-                   }
 		}	
 	}
 	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	
+
 </script>
 	
   </head>
@@ -579,12 +810,17 @@ var table_toggle = true;
   
     <!-- map container -->
 	<div class="mapDiv" id="mapDiv">
-		<div class="layer_bar">
+		<div class="layer_bar" id="layer_bar">
 			<input type="checkbox" class="layer_chk" style="visibility:hidden"       /> <span class="layer_desc" style="font-weight:bold;">Layer Name   </span>&nbsp;&nbsp;Opacity<br>
+			<input type="checkbox" class="layer_chk" id="rides_2016_lyr_chk" checked /> <span class="layer_desc" style="font-weight:bold;color:#1b9e77">Rides 2016</span> &nbsp;<input id="rides_2016_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
+			<input type="checkbox" class="layer_chk" id="rides_2017_lyr_chk" checked /> <span class="layer_desc" style="font-weight:bold;color:#7570b3">Rides 2017</span> &nbsp;<input id="rides_2017_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
+			<input type="checkbox" class="layer_chk" id="rides_2018_lyr_chk" checked /> <span class="layer_desc" style="font-weight:bold;color:#d95f02">Rides 2018</span> &nbsp;<input id="rides_2018_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
+			<input type="checkbox" class="layer_chk" id="rides_2019_lyr_chk" checked /> <span class="layer_desc" style="font-weight:bold;color:#e7298a">Rides 2019</span> &nbsp;<input id="rides_2019_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
 			<input type="checkbox" class="layer_chk" id="rides_2020_lyr_chk" checked /> <span class="layer_desc" style="font-weight:bold;color:#1b9e77">Rides 2020</span> &nbsp;<input id="rides_2020_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
 			<input type="checkbox" class="layer_chk" id="rides_2021_lyr_chk" checked /> <span class="layer_desc" style="font-weight:bold;color:#7570b3">Rides 2021</span> &nbsp;<input id="rides_2021_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
 			<input type="checkbox" class="layer_chk" id="rides_2022_lyr_chk" checked /> <span class="layer_desc" style="font-weight:bold;color:#d95f02">Rides 2022</span> &nbsp;<input id="rides_2022_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
 			<input type="checkbox" class="layer_chk" id="rides_2023_lyr_chk" checked /> <span class="layer_desc" style="font-weight:bold;color:#e7298a">Rides 2023</span> &nbsp;<input id="rides_2023_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>
+			<input type="checkbox" class="layer_chk" id="rides_2024_lyr_chk" checked /> <span class="layer_desc" style="font-weight:bold;color:#e7298a">Rides 2024</span> &nbsp;<input id="rides_2024_opac_slide" type="range" min="0" max="100" value="100" class="lyr_slide"><br>			
 		</div>
 		<div class="basemap_bar" id="basemap_bar">
   		  <form name="basemap_selector">
@@ -592,7 +828,7 @@ var table_toggle = true;
 			<input type="radio" id="base_map" name="base_map" value="hybrid">Hybrid <br>
 			<input type="radio" id="base_map" name="base_map" value="streets">Streets<br>
 			    <hr />
-			<button type="button" onclick="legend_handler();" style="width:100px">Legend</button>
+			<button type="button" onclick="layer_handler();" style="width:100px">Layers</button>
 		    <button type="button" onclick="table_handler();" style="width:100px">Table</button>	  
 		  </form>
 		</div>
@@ -609,8 +845,24 @@ var table_toggle = true;
 	<!-- table pane -->
 	<div id="tableDiv" name="tableDiv" class="tableDiv">
 		<div class="tableControl">
-			<div class="tableControl_content">		
-				<button type="button" onclick="zoom_to_tblSelect();" class="tbl_btn disabled" disabled="disabled" id="zoomTo_btn">Zoom to Selection</button>	  	
+
+			<div class="tableControl_left">				
+				<select id="tbl_yr" name="tbl_yr" class="tbl_tab">
+					<option value="All" >All Years</option>
+					<option value="2024">2024</option>
+					<option value="2023">2023</option>
+					<option value="2022">2022</option>
+					<option value="2021">2021</option>
+					<option value="2020">2020</option>
+					<option value="2019">2019</option>
+					<option value="2018">2018</option>
+				</select>
+				<input type="checkbox" class="select_chk" id="tbl_select_chk" /> Filter table by Selection?</span>
+			</div>
+				
+			<div class="tableControl_content">
+				<button type="button" onclick="do_stuff();" class="tbl_btn">Do Stuff</button>
+				<button type="button" onclick="zoom_to_tblSelect();" class="tbl_btn" id="zoomTo_btn">Zoom to Selection</button>	  	
 			</div>
 		</div>
 		
