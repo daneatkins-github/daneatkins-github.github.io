@@ -196,7 +196,8 @@
 			const cust_popup = new PopupTemplate({
 				outFields:["*"],
 				title: "",
-				content: "<span style='font-weight:bold;'>{Act_Name}</span><br>Date: {Date_Day}/{Date_Mon}/{Date_Yr}<br>Distance: {Dist_Mi} miles<br>Speed: {SpeedAvg} mph;  Max: {SpeedMax} mph"  // Body-content of popup;
+				content: "<span style='font-weight:bold;'>{Act_Name}</span><br>Date: {Date_Day}/{Date_Mon}/{Date_Yr}<br>Distance: {Dist_Mi} miles;"+
+						 " +{ElevGain} feet<br>Speed: {SpeedAvg} mph;  Max: {SpeedMax} mph"  // Body-content of popup;
 			});
 		
 			// loop through layers_names; build each layer as object.
@@ -219,6 +220,7 @@
 				
 				layers[lyr_name] = new GeoJSONLayer({
 					url: lyr_url,
+					id: lyr_name,
 					spatialReference: {wkid: 102100},
 					renderer: lyr_sym,
 					title: lyr_title,
@@ -294,15 +296,16 @@
 			}); // end bloom effect 
 		}); // end loading map modules
 		
-		//populate layer widget:
+		// populate layer widget:
 		load_layer_widget();
 		
 		// call the table:
-		load_table_object();		
+		load_table_object();
+
+		// populate table 'selector'
+		load_table_selector();
+		
 	} // end load_map_object as function
-	
-	
-	
 	
 	function load_layer_widget(){
 		// built from layer_names array; presumes map load succeeds!
@@ -329,14 +332,12 @@
 				// change the opacity to match slider
 				layers[event.target.id].opacity = (event.target.value/100)
 			}
-		}); // end layer_bar listener
-		
-		
-	}
+		}); // end layer_bar listener	
+	} // end load_layer_widget
 
 
 	function load_table_object(){
-		log_msg("<br>tbl seq");
+		log_msg("<br>Tbl Seq... ");
 	
 		// load ESRI table modules 
 		require(["esri/widgets/FeatureTable", "esri/core/reactiveUtils"], (FeatureTable, reactiveUtils) => {
@@ -431,13 +432,53 @@
 						
 				} // end if typeOf (check table exists)
 			});	// end reactiveUtils (
+			
+			// tie mapView selection to the Table.
+				mapView.on("click", async (event) => {
+				  mapView.hitTest(event).then(function(response) {
+
+					var feature = response.results.find(feature => feature.type == 'graphic' && layers_names.includes(feature.layer.id))
+					log_msg('<br>');
+					log_msg(feature.graphic.attributes.__OBJECTID); log_msg(' '); log_msg(feature.graphic.attributes.ElevGain); 
+			
+					table.highlightIds.removeAll()
+					table.highlightIds.add(feature.graphic.attributes.__OBJECTID)	
+						
+			
+				    }); // end mapView hitTest
+			      }); // end mapView onClick
+			
+			
 		}); // end loading required modules
 	
-	log_msg('survived');
+	log_msg('loaded.');
 	} // end load_table_object function;
 
-	
 
+	// dropdown selector for table filtering
+	function load_table_selector(){
+		// populate dropdown from layer_names array; presumes map load succeeds!
+		const select_drop = document.getElementById('tbl_yr');
+		layers_names.forEach( (lyr_name, index) => {
+			select_drop.innerHTML += '<option value="' + lyr_name + '">'+ lyr_name +'</option>'
+
+		}); // end populate dropdown
+
+		// add events to dropdown (year filters)
+		select_drop.addEventListener('change', function(event) {
+			// dropdown changed?  
+			log_msg('<br>'); log_msg(select_drop.value);
+			
+			// filter the table:
+			tbl_filter_by_Year(select_drop.value);
+			log_msg('called filt');
+			
+		}); // end dropdown listener
+	
+	} // end load_table_selector
+
+
+////////////////////
 /// helper functions
 
 	// prints string to 'console' on the HTML page
@@ -445,34 +486,75 @@
 		document.getElementById("my_console").innerHTML += msg;
 	} 
 
+
 	// simple handler to show/hide the div with table.
 	table_toggle = true //initial state;
 	function table_handler() {
-	log_msg('tbl handl');
 		if(table_toggle){
-			var tableDiv = document.getElementById('tableDiv');
-			tableDiv.style.visibility = 'visible';
-
-			var mapDiv = document.getElementById('mapDiv');
-			mapDiv.style.height = '48%';
-		
+			document.getElementById('tableDiv').style.visibility = 'visible'
+			document.getElementById('mapDiv').style.height = '48%';
 			table_toggle = false;		
 		} else {
-			table_toggle = true; 
-			
-			var tableDiv = document.getElementById('tableDiv');
-			tableDiv.style.visibility = 'hidden';
-
-			var mapDiv = document.getElementById('mapDiv');
-			mapDiv.style.height = '100%';
+			document.getElementById('tableDiv').style.visibility = 'hidden';
+			document.getElementById('mapDiv').style.height = '100%';
+			table_toggle = true;
 		}	
 	} // end table_toggle handler
+
+
+	layer_toggle = true;
+	// simple handler to show/hide div with Layer controls
+		function layer_handler() {
+			if(layer_toggle){
+				document.getElementById('layer_bar').style.visibility = 'hidden';
+				layer_toggle = false;		
+			} else {
+				document.getElementById('layer_bar').style.visibility = 'visible';
+				layer_toggle = true;		
+			}	
+		}
+
+
+	//waiting for document, global listeners:
+	window.addEventListener('DOMContentLoaded', function() {	 
+
+		// filter table by selection?
+		tbl_filter_by = document.getElementById('tbl_select_chk');
+		tbl_filter_by.addEventListener('change', () => {
+			table.filterBySelectionEnabled = tbl_filter_by.checked
+		});	 
 	 
+	});	// end waiting for document
 	 
-	 
-	 
+	// function to filter by year:
+	function tbl_filter_by_Year(year){
+		// load query module
+		require(["esri/rest/support/Query"], (Query) => {
+			// build query
+			var query = new Query();
+			var where_q = `Date_Yr = ${year}`
+					
+			if (!layers_names.includes(year)) {
+				// no layer selected, reset layer to 'all'
+				where_q = "1=1"
+				ride_attr.definitionExpression = where_q
+			} else {
+				query.where = where_q
+				ride_attr.queryFeatures(query).then((results) => {
+					ride_attr.definitionExpression = where_q;
+				});
+			}
+		}); // end query module
+	} // end year_filter function
+	
+	// wait for mapView to finish loading:
+	require(["esri/core/reactiveUtils"], (reactiveUtils) => {
+		log_msg('new reactive');
 	
 
+	}); // end reactive require.
+	
+	
 </script>
 	
   </head>
@@ -513,13 +595,6 @@
 			<div class="tableControl_left">				
 				<select id="tbl_yr" name="tbl_yr" class="tbl_tab">
 					<option value="All" >All Years</option>
-					<option value="2024">2024</option>
-					<option value="2023">2023</option>
-					<option value="2022">2022</option>
-					<option value="2021">2021</option>
-					<option value="2020">2020</option>
-					<option value="2019">2019</option>
-					<option value="2018">2018</option>
 				</select>
 				<input type="checkbox" class="select_chk" id="tbl_select_chk" /> Filter table by Selection?</span>
 			</div>
