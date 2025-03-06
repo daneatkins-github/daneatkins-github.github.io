@@ -283,6 +283,8 @@
 				log_msg('<br>');log_msg(key);log_msg(': '); log_msg(layers[key].title); 
 				map.add(layers[key]);
 			}
+				//oneoff:
+				map.add(ride_attr);
 		
 			// add bloom effect
 			require(["esri/layers/support/FeatureEffect", "esri/views/layers/LayerView"],
@@ -431,22 +433,41 @@
 					log_msg('<br>tbl rdy');
 						
 				} // end if typeOf (check table exists)
+				
+				
+				// keep track of the table selection (ObjectID);
+				table.highlightIds.on("change", (event) => {
+					tbl_selection = event.added
+					log_msg('<br>added to tbl: '); log_msg(tbl_selection)
+					// enable/disable zoomTo based on selection.
+					if (tbl_selection != ""){
+						zoomTo_btn.removeAttribute("disabled");
+						set_map_highlight_fromTbl();
+						
+					} else {
+						zoomTo_btn.setAttribute("disabled", "disabled");
+					}
+				});
 			});	// end reactiveUtils (
+			
 			
 			// tie mapView selection to the Table.
 				mapView.on("click", async (event) => {
 				  mapView.hitTest(event).then(function(response) {
-
+					
+					// check the hit is a graphic, AND is in a layer we want (i.e., not the Basemap...)
 					var feature = response.results.find(feature => feature.type == 'graphic' && layers_names.includes(feature.layer.id))
-					log_msg('<br>');
-					log_msg(feature.graphic.attributes.__OBJECTID); log_msg(' '); log_msg(feature.graphic.attributes.ElevGain); 
-			
-					table.highlightIds.removeAll()
-					table.highlightIds.add(feature.graphic.attributes.__OBJECTID)	
-						
-			
-				    }); // end mapView hitTest
-			      }); // end mapView onClick
+		
+					// handle the table select:
+					if (feature){
+						tbl_select_by_feature(feature);
+					} else {
+						table.highlightIds.removeAll();
+					}
+					
+					
+				  }); // end mapView hitTest
+			    }); // end mapView onClick
 			
 			
 		}); // end loading required modules
@@ -458,7 +479,8 @@
 	// dropdown selector for table filtering
 	function load_table_selector(){
 		// populate dropdown from layer_names array; presumes map load succeeds!
-		const select_drop = document.getElementById('tbl_yr');
+		select_drop = document.getElementById('tbl_yr');
+		
 		layers_names.forEach( (lyr_name, index) => {
 			select_drop.innerHTML += '<option value="' + lyr_name + '">'+ lyr_name +'</option>'
 
@@ -526,34 +548,122 @@
 	 
 	});	// end waiting for document
 	 
+	 
+	 
 	// function to filter by year:
 	function tbl_filter_by_Year(year){
-		// load query module
-		require(["esri/rest/support/Query"], (Query) => {
-			// build query
-			var query = new Query();
-			var where_q = `Date_Yr = ${year}`
-					
 			if (!layers_names.includes(year)) {
 				// no layer selected, reset layer to 'all'
 				where_q = "1=1"
 				ride_attr.definitionExpression = where_q
 			} else {
-				query.where = where_q
-				ride_attr.queryFeatures(query).then((results) => {
-					ride_attr.definitionExpression = where_q;
-				});
+				// build new definition
+				where_q = `Date_Yr = ${year}`
+				ride_attr.definitionExpression = where_q;
 			}
-		}); // end query module
 	} // end year_filter function
 	
-	// wait for mapView to finish loading:
-	require(["esri/core/reactiveUtils"], (reactiveUtils) => {
-		log_msg('new reactive');
-	
+	// function to query/select by attribute:
+	function tbl_select_by_feature(feature){
 
-	}); // end reactive require.
+		// may need to change tbl's year-dropdown selector
+		var feat_yr = feature.graphic.attributes.Date_Yr;
+		if (feat_yr != select_drop.value && select_drop.value != 'All'){
+			// feature is not shown in table; 
+			select_drop.value = feat_yr
+			tbl_filter_by_Year(select_drop.value);
+		}
+			
+		// objectIDs aren't 1:1, need to query by an attribute (or two); 
+		var ride_attr_query = {
+			where: `Date_Str = '${feature.graphic.attributes.Date_Str}'`,
+			outFields: ["__OBJECTID", "Date_Str"],
+			returnGeometry:false
+		}
+		
+		// perform the query, 'highlight' the result in the table.
+		ride_attr.queryFeatures(ride_attr_query)
+			.then((results) => {
+				table.highlightIds.removeAll()
+				table.highlightIds.add(results.features[0].attributes.__OBJECTID)
+			});
+	}; // end tbl_select_by_feature;
 	
+	
+	function zoom_to_tblSelect(){
+	// use the table selection to set mapfocus;
+		log_msg('<br>zoomin.. '); log_msg(table.highlightIds)
+		
+		//table.zoomToSelection();
+	}
+		
+	
+	function set_map_highlight_fromTbl(){
+	
+		// easy check: highlight is >0?
+		if (table.highlightIds.length > 0) {
+		
+			//query the table for some attributes to match in the map:
+			var tbl_query = {
+				where: "__OBJECTID = " + table.highlightIds,
+				outFields: ["__OBJECTID", "Date_Str", "Date_Yr"],
+				returnGeometry:false
+			}
+				
+			ride_attr.queryFeatures(tbl_query)
+				.then((results) => {
+					var feature_year = results.features[0].attributes.Date_Yr
+					var feature_date = results.features[0].attributes.Date_Str
+					//log_msg(`<br>..tbl: ${results.features[0].attributes.__OBJECTID}; ${feature_year}, ${feature_date}`);
+					
+					// got the attributes from the table:
+					// use the year and date to select a layer and query the feature-graphic:
+					var lyr_query = {
+						where: "Date_Str = '" + feature_date + "'",
+						outFields: ["__OBJECTID", "Act_Name"],
+						returnGeometry:true
+					}
+						
+					//log_msg(`<br> .. ${lyr_query.where}`)
+					
+					layers[feature_year].queryFeatures(lyr_query)
+						.then((lyr_results) => {
+							
+							var objId = lyr_results.features[0].attributes.__OBJECTID;
+							//log_msg('<br> found'); log_msg(objId); 
+							
+							
+							
+							//make the selection:
+							mapView.whenLayerView(layers[feature_year]).then(function(lyrView) {
+								//log_msg('.. hit lyrView'); 
+								lyrView.highlight(objId);
+							});
+					}); // end lyr_query
+						
+				}); // end tbl_query (ride_attr)
+	
+		} // end 'if tbl has selection'
+	}
+	
+	function do_stuff(){
+		remove_mapHighlights()
+		log_msg('<br>dooo');
+	}
+	
+	function remove_mapHighlights(){
+		// loop through layers_names; build each layer as object.
+		
+			layers_names.forEach( (lyr_name, index) => {
+				mapView.whenLayerView(layers[lyr_name]).then((lyrView) => {
+					log_msg(lyr_name);
+					
+				}); // end whenLayerView
+			}); //end forEach lyr Loop	
+		
+		
+
+	};
 	
 </script>
 	
@@ -601,7 +711,7 @@
 				
 			<div class="tableControl_content">
 				<button type="button" onclick="do_stuff();" class="tbl_btn">Do Stuff</button>
-				<button type="button" onclick="zoom_to_tblSelect();" class="tbl_btn" id="zoomTo_btn">Zoom to Selection</button>	  	
+				<button type="button" onclick="zoom_to_tblSelect();" class="tbl_btn" id="zoomTo_btn" disabled>Zoom to Selection</button>	  	
 			</div>
 		</div>
 		
