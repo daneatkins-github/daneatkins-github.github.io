@@ -30,7 +30,7 @@
     	padding: 0;
     	margin:  0;
     	height: 100%;
-    	width: 99%;
+    	width: 69%;
 		border: 2px solid black;
       }
 
@@ -57,7 +57,7 @@
 		border: 2px solid black;
 		background:white;
 		display:inline-block;
-		visibility:hidden;
+		visibility:visible;
 		z-index:3;
 	  }
 	  .console_log {
@@ -77,7 +77,7 @@
 /* Custom 'Table & Button Widget' */	  
 	  .tableDiv {
 		height: 51.25%; 
-		width:99%; 
+		width:69%; 
 		margin-left:auto;
 		margin-right:auto;
 				
@@ -146,7 +146,7 @@
 	  
 /* Custom 'Layer Widget' */	  
 	  .layer_bar {
-		visibility:visible;
+		visibility:hidden;
 		position: absolute; left:1px; bottom:1px;
 		
 		width:200px;
@@ -190,6 +190,9 @@
 	
 <!-- custom scripting -->
 <script>
+
+
+	
 	
 	// Builds from Array:
 	layers_names  = ['2016', '2017',  '2018',   '2019', '2020', '2021', '2022', '2023', '2024']
@@ -198,7 +201,18 @@
 	
 	//wait for document:
 	window.addEventListener('DOMContentLoaded', function() {
-	
+		// handle user selection: map or table?
+			set_by = null;
+			const tableDiv = document.getElementById("tableDiv");
+			const mapDiv   = document.getElementById("mapDiv");
+			
+			tableDiv.addEventListener('click', function(event) {
+				set_by = "table";
+			});
+			mapDiv.addEventListener('click', function(event) {
+				set_by = "map";
+			});
+
 		//load required modules from ESRI
 		require(["esri/layers/GeoJSONLayer", "esri/symbols/SimpleLineSymbol", "esri/PopupTemplate"], 
 			(GeoJSONLayer, SimpleLineSymbol, PopupTemplate) => {
@@ -243,7 +257,7 @@
 			
 			// one off layers (attributes for table, here):
 			ride_attr = new GeoJSONLayer({
-				url: "https://daneatkins-github.github.io/assets/fc/Ride_Start_Attr.geojson",
+				url: "https://daneatkins-github.github.io/assets/fc/ride_attr.geojson",
 				spatialReference: {wkid: 102100},
 				renderer:null,
 				title: "Ride Attr",
@@ -292,7 +306,7 @@
 			
 			// add the layers
 			for (let key in layers){
-				log_msg('<br>');log_msg(key);log_msg(': '); log_msg(layers[key].title); 
+				//log_msg('<br>');log_msg(key);log_msg(': '); log_msg(layers[key].title); 
 				map.add(layers[key]);
 			}
 				//oneoff:
@@ -354,127 +368,201 @@
 	function load_table_object(){
 		log_msg("<br>Tbl Seq... ");
 	
-	
-		run_count = 0
 		// load ESRI table modules 
 		require(["esri/widgets/FeatureTable", "esri/core/reactiveUtils"], (FeatureTable, reactiveUtils) => {
 	
 			// wait for mapview to finish loading completely -- prevents empty tableview	
 			const runonce_handle = reactiveUtils.when( () => mapView.updating == false,	() => {
-				run_count += 1;
-				log_msg("<br>mapView load: ");log_msg(run_count);
-				// check that we haven't drawn the table, yet
-				if (typeof table == "undefined"){
-					// create table 'object'
-					table = new FeatureTable({
-						id: "MyTable",
-						view: mapView,   // tie to map for selection/highlighting
-						highlightEnabled:true,
-						layer: ride_attr,
-						container: "tableContainer", 	// attach to a DOM element.
-						visibleElements: { menu: false },
-							tableTemplate: {
-								columnTemplates: [
-								{type:"field",
-								 fieldName:"Act_Name",
-								 label:"Name",
-								 visible: true,
-								 width:100
-								 },
-								 {type:"field",
-								 fieldName:"Date_Str",
-								 label:"Date-Time (Z)",
-								 visible: true,
-								 width:50
-								 },
-								{type:"field",
-								 fieldName:"Act_Desc",
-								 label:"Description",
-								 visible: true,
-								 width:150
-								 },
-								 {type:"field",
-								 fieldName:"Dist_Mi",
-								 label:"Miles",
-								 visible: true,
-								 width:50
-								 },
-								{type:"field",
-								 fieldName:"MovTimeS",
-								 label:"Moving Time",
-								 visible: true,
-								 width:50
-								 },
-								{type:"field",
-								 fieldName:"Speed_Avg",
-								 label:"Speed",
-								 visible: true,
-								 width:50
-								 },
-								 {type:"field",
-								 fieldName:"Speed_Max",
-								 label:"Max Speed",
-								 visible: true,
-								 width:50
-								 },
-								 {type:"field",
-								 fieldName:"ElevGain",
-								 label:"Elevation (ft)",
-								 visible: true,
-								 width:50
-								 },
-								 {type:"field",
-								 fieldName:"ElevHigh",
-								 label:"Altitude (ft)",
-								 visible: true,
-								 width:50
-								 },
-								 {type:"field",
-								 fieldName:"Bike_Nm",
-								 label:"Bike",
-								 visible: true,
-								 width:50
-								 },
-								 {type:"field",
-								 fieldName:"Temp",
-								 label:"Temperature",
-								 visible: true,
-								 width:50
-								 }
-							]}  // end tableTemplate
-					}); // end table definition
+		
+				log_msg("<br>mapView load: ");
+
+				// create table 'object'
+				table = new FeatureTable({
+					id: "MyTable",
+					view: mapView,   // tie to map for selection/highlighting
+					highlightEnabled:true,
+					layer: ride_attr,
+					container: "tableContainer", 	// attach to a DOM element.
+					visibleElements: { menu: false },
+						tableTemplate: {
+							columnTemplates: [
+							{type:"field",
+							 fieldName:"__OBJECTID",
+							 label:"OID",
+							 visible: true,
+							 width:65
+							 },
+							{type:"field",
+							 fieldName:"KEY",
+							 label:"KEY",
+							 visible: true,
+							 width:65
+							 },
+							{type:"field",
+							 fieldName:"Date_Str",
+							 label:"Date-Time (Z)",
+							 visible: true,
+							 width:100
+							 },
+						/*  calculated column fails sort (maybe values don't exist)?
+							 {type:"column",
+							 fieldName:"Dist_Mi_str",
+							 label:"Mi",
+							 formatFunction: ({feature}) => {return feature.attributes["Dist_Mi"].toFixed(1)},
+							 sortable: true,  
+							 visible: true,
+							 textAlign:"end",
+							 width:65
+							 },   */
+							{type:"field",
+							 fieldName:"Dist_Mi",
+							 label:"Miles",
+							 visible: true,
+							 textAlign:"end",
+							 width:65
+							 },
+							{type:"field",
+							 fieldName:"MovTimeS",
+							 label:"Moving Time",
+							 visible: true,
+							 width:75
+							 },
+							{type:"field",
+							 fieldName:"Act_Name",
+							 label:"Name",
+							 visible: true,
+							 width:75
+							 },
+							{type:"field",
+							 fieldName:"Act_Desc",
+							 label:"Description",
+							 visible: true,
+							 width:150
+							 },
+							{type:"field",
+							 fieldName:"Speed_Avg",
+							 label:"Speed",
+							 visible: true,
+							 width:50
+							 },
+							 {type:"field",
+							 fieldName:"Speed_Max",
+							 label:"Max Speed",
+							 visible: true,
+							 width:50
+							 },
+							 {type:"field",
+							 fieldName:"ElevGain",
+							 label:"Elevation (ft)",
+							 visible: true,
+							 width:50
+							 },
+							 {type:"field",
+							 fieldName:"ElevHigh",
+							 label:"Altitude (ft)",
+							 visible: true,
+							 width:50
+							 },
+							 {type:"field",
+							 fieldName:"Bike_Nm",
+							 label:"Bike",
+							 visible: true,
+							 width:50
+							 },
+							 {type:"field",
+							 fieldName:"Temp",
+							 label:"Temperature",
+							 visible: true,
+							 width:50
+							 }
+						]}  // end tableTemplate
+				}); // end table definition
+					
+				// shoehorn property:
+				table.multipleSelectionEnabled = false;
+				log_msg('tbl rdy');
 						
-					// shoehorn property:
-					table.multipleSelectionEnabled = false;
-					log_msg('<br>tbl rdy');
-						
-				} // end if typeOf (check table exists)
-				
-				
 				
 				// table selection handler
 				table.highlightIds.on("change", (event) => {
-					tbl_selection = event.added
-					log_msg('ts'); log_msg(tbl_selection)
-					
-					// should probably check the key against cur_selected;
-					// if the keys match. we'll stop!
-					
-					//otherwise, update the map!
+					log_msg('<br> chg in table selc');
 				
+					if (set_by == "table") {		// selection changed by user; update map too:
+						tbl_selected = event.added
+						if (tbl_selected != ""){  // check for "deselect";
+							log_msg('.. upd map')
+							
+							log_msg('<br> .. ts '); log_msg(tbl_selected)
+							
+							// objectIDs aren't 1:1, need to query by an attribute (or two) to get into the map; 
+							var ride_attr_query = {
+								where: `__OBJECTID = '${tbl_selected}'`,
+								outFields: ["__OBJECTID", "KEY", "Date_Yr"],
+								returnGeometry:false
+							}
+						
+							// perform the query, 'highlight' the result in the map.
+							ride_attr.queryFeatures(ride_attr_query)
+								.then((results) => {
+									var res_feature = results.features[0];
+									tbl_selected = results.features[0].attributes;
+									log_msg(`<br> &nbsp;&nbsp;.. fnd: ${tbl_selected.KEY}; ${tbl_selected.Date_Yr}`);
+
+									// we have the feature from the 'table'. now we need the actual feature in mapLayer...
+									var layer_query = {
+										where: `KEY = '${tbl_selected.KEY}'`,
+										outFields: ["__OBJECTID", "KEY", "Date_Yr"],
+										returnGeometry:false
+									}
+									layers[tbl_selected.Date_Yr].queryFeatures(layer_query)
+										.then((lyr_result) => {
+											log_msg("<br>");
+											log_msg(JSON.stringify(lyr_result.features[0].attributes.__OBJECTID));
+											log_msg(" .. ");
+											log_msg(JSON.stringify(lyr_result.features[0].attributes.KEY));
+										
+										// set the map Popup
+										mapView.popup.open({ features: [lyr_result.features[0] ]});
+										// set the highlight:
+										
+										
+									});
+									
+									/*
+									mapView.whenLayerView(layers[tbl_selected.Date_Yr]).then(function(lyrView) {
+										log_msg("..lyrView");
+										mapView.popup.open({
+											features:res_feature
+										});
+										log_msg('.done.');
+									});
+									*/
+							});
+							
+				
+							
+
+						} // end deselect check
+					} else {
+						// table update was made by a change was made in the map; do nothing.
+						log_msg("..do not");
+					} // end if set_by table;
+
+					/*
 				// enable/disable zoomTo based on selection.
-					if (tbl_selection != ""){
-						log_msg('here');
+					if (tbl_selected != ""){
+						//log_msg('here');
 						zoomTo_btn.removeAttribute("disabled");
 						
 						
-						map_select_by_feature(tbl_selection);
+						//map_select_by_feature(tbl_selection);
 					
 					} else {
-						log_msg('not here');
+						//log_msg('not here');
 						zoomTo_btn.setAttribute("disabled", "disabled");
 					}
-				});
+					*/
+				}); // end table_selection handler;
 				
 			runonce_handle.remove();	
 			});	// end reactiveUtils 
@@ -486,6 +574,8 @@
 			let cur_highlight;
 			let cur_selected = {};
 			reactiveUtils.watch( () => mapView.popup.selectedFeature, (sel_feat) => {
+			log_msg(`<br> user select by: ${set_by}`);
+			
 				if (sel_feat){
 					feature = sel_feat;
 				
@@ -501,12 +591,18 @@
 					
 					// get layerview to apply a highlight:
 					mapView.whenLayerView(layers[cur_selected.LYR]).then(function(lyrView) {
-						log_msg('..highlight in'); log_msg(cur_selected.LYR);
 						// assign the highlight to a 'handle' so we can remove it later;
 						cur_highlight = lyrView.highlight(cur_selected.OID)
+						
 					}); // end layerview ops
-					log_msg(`<br>Deet: ${cur_selected.OID}, ${cur_selected.KEY}, ${cur_selected.LYR}`)
-					tbl_select_by_feature(cur_selected);
+					log_msg(`<br>ms${cur_selected.KEY}, ${cur_selected.LYR}`)
+					
+					// if the user set_by the map: also update the table:
+					if (set_by == "map"){	
+						log_msg("<br> ..... updating table select");
+						tbl_select_by_feature(cur_selected);   
+					};
+					
 				} else {
 					// remove any existing highlights;
 					if (cur_highlight){cur_highlight.remove()}
@@ -572,7 +668,7 @@
 	} // end table_toggle handler
 
 
-	layer_toggle = true;
+	layer_toggle = false;
 	// simple handler to show/hide div with Layer controls
 		function layer_handler() {
 			if(layer_toggle){
