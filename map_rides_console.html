@@ -30,7 +30,7 @@
     	padding: 0;
     	margin:  0;
     	height: 100%;
-    	width: 99%;
+    	width: 69%;
 		border: 2px solid black;
       }
 
@@ -57,7 +57,7 @@
 		border: 2px solid black;
 		background:white;
 		display:inline-block;
-		visibility:hidden;
+		visibility:visible;
 		z-index:3;
 	  }
 	  .console_log {
@@ -77,7 +77,7 @@
 /* Custom 'Table & Button Widget' */	  
 	  .tableDiv {
 		height: 51.25%; 
-		width:99%; 
+		width:69%; 
 		margin-left:auto;
 		margin-right:auto;
 				
@@ -505,6 +505,15 @@
 								returnGeometry:true
 							}
 						
+							// check the table is not filtered:
+							var feat_lyr = tbl_selected.Date_Yr;
+							if (feat_lyr != select_drop.value && select_drop.value != 'All'){
+									log_msg('caught it');
+									// feature is not shown in table; 
+									select_drop.value = feat_lyr
+									tbl_filter_by_Year(select_drop.value);
+							}
+							
 							// perform the query, 'highlight' the result in the map.
 							ride_attr.queryFeatures(ride_attr_query)
 								.then((results) => {
