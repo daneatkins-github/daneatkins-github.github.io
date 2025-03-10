@@ -1,0 +1,627 @@
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Maps Application</title>
+
+    <!-- dependencies -->
+	<link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.2/calcite.css" />
+	<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.31/"></script>
+    
+	<!-- custom styles / page layout -->
+	<style>
+      html,
+      body {}
+
+/* Primary Layouts */	  
+	.page_div {
+		position:relative;
+		margin-left:auto;
+		margin-right:auto;
+		width:99%; height:98%;
+	  }
+      
+	  .mapDiv {
+    	position:absolute; top:0; left:0;
+    	float:left;
+    	padding: 0;
+    	margin:  0;
+    	height: 100%;
+    	width: 69%;
+		border: 2px solid black;
+      }
+
+  
+	  .basemap_bar {
+		position: absolute; top:10px; left:100%;
+		margin-left: -120px;
+		width:100px;
+		
+		border: 2px solid black;
+		background: white;
+		padding: 3px;
+		z-index: 1;
+		
+		font-size:15px !important; 
+	  }
+	  	  	  
+/* Custom Console */
+	  .console_div {
+	    position:absolute; 
+		top:0; right:0;
+		width:30%; height:100%;
+	  
+		border: 2px solid black;
+		background:white;
+		display:inline-block;
+		visibility:visible;
+		z-index:3;
+	  }
+	  .console_log {
+		padding:3px;
+		overflow:auto;
+	  }
+	  
+	  form {
+		display:inline;
+		margin:0;
+		padding:0;
+	  }
+
+	  hr { width:100%; height:1px; background: #fff; 
+		 margin:0px; padding:0px;}
+
+/* Custom 'Table & Button Widget' */	  
+	  .tableDiv {
+		height: 51.25%; 
+		width:69%; 
+		margin-left:auto;
+		margin-right:auto;
+				
+		position:absolute;
+		top:48.75%; 
+
+		border: 2px solid gray;
+		background-color:Linen;
+		visibility:hidden;
+		z-index: 2;
+	  }
+	  
+	  .tableControl {
+	    height:8%;
+		min-height:22px;
+		width:100%;
+		display: inline-block;
+		text-align:right;
+		position:relative;
+	  }
+	  
+	  .tableControl_left {
+		position:absolute;
+		height:100%;
+		left:0;
+		z-index:2;
+	  }
+	  .tbl_tab {
+		height:100%;
+		width:140px;
+		float: left;
+		border:1px solid black; border-radius: 5px;
+		outline: none;
+		cursor: pointer;
+		font-size: 18px;
+		text-align:center;
+	  }
+
+
+	  
+	  .tableControl_content {
+		position:absolute;
+		right:0;
+		top:50%;
+		margin-top:-.9em;
+		z-index:2;
+		min-height:23px;
+	  }
+	  .tableContainer {
+	    position:relative;
+		height:92%;
+		width:100%;
+	  }
+	  .tbl_btn {
+		margin-top:4px;
+	  }
+	  
+	  .popup_img {
+	    border: 2px solid blue;
+	  }
+	  .popup_img_hidden {
+		visibility:hidden;
+	  }
+	  
+	  
+	  
+/* Custom 'Layer Widget' */	  
+	  .layer_bar {
+		visibility:hidden;
+		position: absolute; left:1px; bottom:1px;
+		
+		width:200px;
+		height:auto;
+		
+		border: 2px solid black;
+		background: white;
+		padding: 3px;
+		
+		font-size:14px !important;
+	  }
+	  .layer_desc {
+	    display:inline-block;
+		width:90px;
+		position:relative;
+		top: -1px;
+	  }
+	  .layer_chk {
+		margin-top:6px;
+	  }  
+	  .lyr_slide {
+		width:50px;
+		
+		position:relative;   
+		top:3px;
+	  }	  
+	  
+/* Popup Zindex */
+.esri-popup {
+  position: relative;
+  z-index: 9 !important;
+}
+
+.esri-popup__main-container {
+  z-index: 99 !important;
+}
+ 
+	  
+    </style>
+
+
+<script>
+
+
+/* define onLoad events
+    run once
+*/
+// Builds from Array:
+layers_names  = ['2016', '2017',  '2018',   '2019', '2020', '2021', '2022', '2023', '2024']
+layers_colors = ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d','#666666', 'blue']
+layers = {}
+
+//wait for document:
+const run_onLoad = window.addEventListener('DOMContentLoaded', function() {
+	
+    //load required modules from ESRI
+    require(["esri/layers/GeoJSONLayer", "esri/symbols/SimpleLineSymbol", 
+             "esri/PopupTemplate", 
+             "esri/Map", "esri/views/MapView",
+             "esri/widgets/FeatureTable", 
+             "esri/core/reactiveUtils"], 
+            (GeoJSONLayer, SimpleLineSymbol, 
+             PopupTemplate,
+             Map, MapView,
+             FeatureTable, reactiveUtils) => {
+    
+        // define popup (once for all layers/same schema):
+        const cust_popup = new PopupTemplate({
+            outFields:["*"],
+            title: "",
+            content: "<span style='font-weight:bold;'>{Act_Name}</span><br>Date: {Date_Day}/{Date_Mon}/{Date_Yr}<br>Distance: {Dist_Mi} miles;"+
+                        " +{ElevGain} feet<br>Speed: {SpeedAvg} mph;  Max: {SpeedMax} mph"  // Body-content of popup;
+        });
+		
+        // loop through layers_names; build each layer as object.
+        layers_names.forEach( (lyr_name, index) => {
+				
+            //custom symbology
+            var  lyr_sym = {
+                "type": "simple", 
+                "symbol":{    
+                    type: "simple-line", 
+                    style: "solid",
+                    color: layers_colors[index],    
+                    width: "3px"		
+                            }
+            }; // end lyr_sym
+								   
+            //create layer object, store in 'layers' object
+            var lyr_url   = `https://daneatkins-github.github.io/assets/fc/${lyr_name}.geojson`
+            var lyr_title = `${lyr_name} Rides` 
+            
+            layers[lyr_name] = new GeoJSONLayer({
+                url: lyr_url,
+                id: lyr_name,
+                spatialReference: {wkid: 102100},
+                renderer: lyr_sym,
+                title: lyr_title,
+                selectionMode: "single",
+                outFields: ["*"],
+                popupTemplate: cust_popup
+            });				
+        }); // end 'loop through layers_arr'
+        
+        // one off layers (attributes for table, here):
+        ride_attr = new GeoJSONLayer({
+            url: "https://daneatkins-github.github.io/assets/fc/ride_attr.geojson",
+            spatialReference: {wkid: 102100},
+            renderer:null,
+            title: "Ride Attr",
+            selectionMode: "single",
+            outFields: ["*"],
+            popupTemplate: cust_popup
+        });
+        
+        log_msg("<br>Built layers,");
+
+			
+        // map
+        map = new Map({    
+            basemap: "topo"
+        }); // end map
+    
+        // map view (and css connection)
+        mapView = new MapView({
+            container: "mapDiv", // Reference to the container in html/css
+            map: map,            // Reference to the map object created before the view
+            zoom: 3,             // Sets zoom level based on level of detail (LOD)
+            center: [-108.854709, 44.673518],     // Sets center point of view using longitude,latitude
+            popup: {
+                dockOptions: {buttonEnabled:false}
+            }
+        }); // end mapView
+
+        // shoehorn some popup customization here.
+        mapView.popup.visibleElements = { actionBar:false,
+                                            collapseButton:false,
+                                            closeButton:true,
+                                            heading:false};
+        mapView.popup.highlightEnabled = false;  // we'll handle highlights 'by selection'
+        
+        // add the layers
+        for (let key in layers){
+            //log_msg('<br>');log_msg(key);log_msg(': '); log_msg(layers[key].title); 
+            map.add(layers[key]);
+        }
+            //oneoff:
+            map.add(ride_attr);
+    
+        // add bloom effect
+        require(["esri/layers/support/FeatureEffect", "esri/views/layers/LayerView"],
+            (FeatureEffect, LayerView) => {
+            for (let key in layers){
+                // when LayerView is ready
+                mapView.whenLayerView(layers[key]).then((layerView) => {
+                    layers[key].effect = "bloom(2, 0.3px, 0.1%)"; 		 
+                });
+            }
+        }); // end bloom effect 
+
+        log_msg('map,')
+
+
+		// built from layer_names array; presumes map load succeeds!
+		const layer_bar = document.getElementById('layer_bar');
+		layers_names.forEach( (lyr_name, index) => {
+			layer_bar.innerHTML += '<input type="checkbox" class="layer_chk" id="' + 
+									lyr_name + 
+									'" checked /> <span class="layer_desc" style="font-weight:bold;color:' + 
+									layers_colors[index] + '">' + lyr_name + 
+									' Rides</span> &nbsp;<input id="' + lyr_name + 
+									'" type="range" min="0" max="100" value="100" class="lyr_slide"><br>';
+		}); // end lyr_name loop
+
+		// add events to layer_bar (visibility and opacity)
+		layer_bar.addEventListener('click', function(event) {
+			// if event is checkbox (visibility toggle):
+			if (event.target.classList.contains('layer_chk')){
+				// toggle the target layer
+				layers[event.target.id].visible = event.target.checked;
+			}
+		
+			// if event is slider (visibility toggle):
+			if (event.target.classList.contains('lyr_slide')){
+				// change the opacity to match slider
+				layers[event.target.id].opacity = (event.target.value/100)
+			}
+		}); // end layer_bar listener	
+        log_msg('lyr_bar,')
+
+        const run_onMapLoad = reactiveUtils.when( () => mapView.updating == false,	() => {
+            // create table 'object'
+            table = new FeatureTable({
+                id: "MyTable",
+                view: mapView,   // tie to map for selection/highlighting
+                highlightEnabled:true,
+                layer: ride_attr,
+                container: "tableContainer", 	// attach to a DOM element.
+                visibleElements: { menu: false },
+                    tableTemplate: {
+                        columnTemplates: [
+                        {type:"field",
+                        fieldName:"__OBJECTID",
+                        label:"OID",
+                        visible: true,
+                        width:65
+                        },
+                        {type:"field",
+                        fieldName:"KEY",
+                        label:"KEY",
+                        visible: true,
+                        width:65
+                        },
+                        {type:"field",
+                        fieldName:"Date_Str",
+                        label:"Date-Time (Z)",
+                        visible: true,
+                        width:100
+                        },
+                    /*  calculated column fails sort (maybe values don't exist)?
+                        {type:"column",
+                        fieldName:"Dist_Mi_str",
+                        label:"Mi",
+                        formatFunction: ({feature}) => {return feature.attributes["Dist_Mi"].toFixed(1)},
+                        sortable: true,  
+                        visible: true,
+                        textAlign:"end",
+                        width:65
+                        },   */
+                        {type:"field",
+                        fieldName:"Dist_Mi",
+                        label:"Miles",
+                        visible: true,
+                        textAlign:"end",
+                        width:65
+                        },
+                        {type:"field",
+                        fieldName:"MovTimeS",
+                        label:"Moving Time",
+                        visible: true,
+                        width:75
+                        },
+                        {type:"field",
+                        fieldName:"Act_Name",
+                        label:"Name",
+                        visible: true,
+                        width:75
+                        },
+                        {type:"field",
+                        fieldName:"Act_Desc",
+                        label:"Description",
+                        visible: true,
+                        width:150
+                        },
+                        {type:"field",
+                        fieldName:"Speed_Avg",
+                        label:"Speed",
+                        visible: true,
+                        width:50
+                        },
+                        {type:"field",
+                        fieldName:"Speed_Max",
+                        label:"Max Speed",
+                        visible: true,
+                        width:50
+                        },
+                        {type:"field",
+                        fieldName:"ElevGain",
+                        label:"Elevation (ft)",
+                        visible: true,
+                        width:50
+                        },
+                        {type:"field",
+                        fieldName:"ElevHigh",
+                        label:"Altitude (ft)",
+                        visible: true,
+                        width:50
+                        },
+                        {type:"field",
+                        fieldName:"Bike_Nm",
+                        label:"Bike",
+                        visible: true,
+                        width:50
+                        },
+                        {type:"field",
+                        fieldName:"Temp",
+                        label:"Temperature",
+                        visible: true,
+                        width:50
+                        }
+                    ]}  // end tableTemplate
+            }); // end table definition
+                
+            // shoehorn property:
+            table.multipleSelectionEnabled = false;
+            log_msg(',tbl');        
+
+            run_onMapLoad.remove()
+        }); // end on_MapLoad (make table)
+
+
+		// populate dropdown from layer_names array; presumes map load succeeds!
+		select_drop = document.getElementById('tbl_yr');
+		layers_names.forEach( (lyr_name, index) => {
+			select_drop.innerHTML += '<option value="' + lyr_name + '">'+ lyr_name +'</option>'
+		}); // end populate dropdown
+
+		// add events to dropdown (year filters)
+		select_drop.addEventListener('change', function(event) {
+			tbl_filter_by_Year(select_drop.value);
+		}); // end dropdown listener
+
+
+
+
+
+
+    }); // end require 'load modules'
+
+
+run_onLoad.remove()
+}); // end onload;
+
+
+
+/////////////////
+// data functions
+
+	// function to filter by year:
+	async function tbl_filter_by_Year(year){
+			if (!layers_names.includes(year)) {
+				// no layer selected, reset layer to 'all'
+				where_q = "__OBJECTID > -1"
+				ride_attr.definitionExpression = where_q
+				ride_attr.refresh();
+			} else {
+				// build new definition
+				where_q = `Date_Yr = ${year}`
+				ride_attr.definitionExpression = where_q;
+				ride_attr.refresh();
+			}
+	} // end year_filter function
+
+
+
+
+////////////////////
+/// helper functions
+
+	// prints string to 'console' on the HTML page
+	function log_msg (msg) {
+		document.getElementById("my_console").innerHTML += msg;
+	} 
+
+// queries; return result, no interactions!
+    async function lyr_query(lyr, attr, value){
+        // return custom feat.object from attr/value:
+        var lyr_query_obj = {
+            where: `${attr} = '${value}'`,
+            outFields: ["__OBJECTID", "KEY", "Date_Yr"],
+            returnGeometry:false
+        }   
+    	// perform the query, return the object
+		var results = await lyr.queryFeatures(lyr_query_obj)
+        var feature = {
+            OID: results.features[0].attributes.__OBJECID,
+            KEY: results.features[0].attributes.KEY,
+            LYR: results.features[0].attributes.Date_Yr
+        }
+    return feature        
+    }
+
+// div toggles;  no data interactions!
+
+    // simple handler to show/hide the div with table.
+	table_toggle = true //initial state;
+	function table_handler() {
+		if(table_toggle){
+			document.getElementById('tableDiv').style.visibility = 'visible'
+			document.getElementById('mapDiv').style.height = '48%';
+			table_toggle = false;		
+		} else {
+			document.getElementById('tableDiv').style.visibility = 'hidden';
+			document.getElementById('mapDiv').style.height = '100%';
+			table_toggle = true;
+		}	
+	} // end table_toggle handler
+
+	// simple handler to show/hide div with Layer controls
+	layer_toggle = false;
+		function layer_handler() {
+			if(layer_toggle){
+				document.getElementById('layer_bar').style.visibility = 'hidden';
+				layer_toggle = false;		
+			} else {
+				document.getElementById('layer_bar').style.visibility = 'visible';
+				layer_toggle = true;		
+			}	
+		}
+
+
+
+async function do_stuff(){
+    resu = await lyr_query(ride_attr, 'KEY', 3)
+    log_msg('<br>Do res:')
+    log_msg(JSON.stringify(resu));
+
+
+}
+
+
+
+
+
+
+</script>
+</head>
+
+<body>
+<!-- viewport container -->
+<div class="page_div" id="page_div">
+
+  <!-- map container -->
+  <div class="mapDiv" id="mapDiv">
+      <div class="layer_bar" id="layer_bar">
+          <!-- layer list / controls populated dynamically -->
+      </div>
+      <div class="basemap_bar" id="basemap_bar">
+          <form name="basemap_selector">
+          <input type="radio" id="base_map" name="base_map" value="topo" checked>Topo <br>
+          <input type="radio" id="base_map" name="base_map" value="hybrid">Hybrid <br>
+          <input type="radio" id="base_map" name="base_map" value="streets">Streets<br>
+              <hr />
+          <button type="button" onclick="layer_handler();" style="width:100px">Layers</button>
+          <button type="button" onclick="table_handler();" style="width:100px">Table</button>	  
+        </form>
+      </div>
+      
+  </div> <!-- end map container -->
+  
+  <!-- righthand pane -->
+    <div class="console_div" id="console_div">
+      <div class="console_log" id="my_console">
+      Logging....
+      </div>
+  </div>
+
+  <!-- table pane -->
+  <div id="tableDiv" name="tableDiv" class="tableDiv">
+      <div class="tableControl">
+
+          <div class="tableControl_left">				
+              <select id="tbl_yr" name="tbl_yr" class="tbl_tab">
+                  <option value="All" >All Years</option>
+              </select>
+              <input type="checkbox" class="select_chk" id="tbl_select_chk" /> Filter table by Selection?</span>
+          </div>
+              
+          <div class="tableControl_content">
+              <button type="button" onclick="do_stuff2();" class="tbl_btn">Do Stuff2</button>
+              <button type="button" onclick="do_stuff();" class="tbl_btn">Do Stuff</button>
+              <button type="button" onclick="zoom_to_tblSelect();" class="tbl_btn" id="zoomTo_btn" disabled>Zoom to Selection</button>	  	
+          </div>
+      </div>
+      
+      <div id="tableContainer" class="tableContainer">
+              
+      </div>
+  </div>
+
+
+  
+</div> <!-- end pageDiv --> 
+
+
+
+</body>
+</html>
