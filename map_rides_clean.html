@@ -194,6 +194,7 @@
 /* define onLoad events
     run once
 */
+
 // Builds from Array:
 layers_names  = ['2016', '2017',  '2018',   '2019', '2020', '2021', '2022', '2023', '2024']
 layers_colors = ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d','#666666', 'blue']
@@ -201,7 +202,25 @@ layers = {}
 
 //wait for document:
 const run_onLoad = window.addEventListener('DOMContentLoaded', function() {
-	
+
+ 		// handle user selection: map or table?
+     set_by = null;
+			const tableDiv = document.getElementById("tableContainer");
+			const mapDiv   = document.getElementById("mapDiv");
+			
+			tableDiv.addEventListener('click', function(event) {
+				set_by = "table";
+			});
+			mapDiv.addEventListener('click', function(event) {
+				set_by = "map";
+			}); 
+
+    // filter table by selection?
+		tbl_filter_by = document.getElementById('tbl_select_chk');
+		tbl_filter_by.addEventListener('change', () => {
+			table.filterBySelectionEnabled = tbl_filter_by.checked
+		});	  
+
     //load required modules from ESRI
     require(["esri/layers/GeoJSONLayer", "esri/symbols/SimpleLineSymbol", 
              "esri/PopupTemplate", 
@@ -274,9 +293,11 @@ const run_onLoad = window.addEventListener('DOMContentLoaded', function() {
         mapView = new MapView({
             container: "mapDiv", // Reference to the container in html/css
             map: map,            // Reference to the map object created before the view
-            zoom: 3,             // Sets zoom level based on level of detail (LOD)
-            center: [-108.854709, 44.673518],     // Sets center point of view using longitude,latitude
-            popup: {
+             // zoom: 3,             // Sets zoom level based on level of detail (LOD)
+             // center: [-108.854709, 44.673518],     // Sets center point of view using longitude,latitude
+              zoom: 15,             // Sets zoom level based on level of detail (LOD)
+              center: [-91.667, 41.975],     // Sets center point of view using longitude,latitude
+             popup: {
                 dockOptions: {buttonEnabled:false}
             }
         }); // end mapView
@@ -286,7 +307,7 @@ const run_onLoad = window.addEventListener('DOMContentLoaded', function() {
                                             collapseButton:false,
                                             closeButton:true,
                                             heading:false};
-        mapView.popup.highlightEnabled = false;  // we'll handle highlights 'by selection'
+        mapView.popup.highlightEnabled = true;  // we'll handle highlights 'by selection'
         
         // add the layers
         for (let key in layers){
@@ -306,35 +327,35 @@ const run_onLoad = window.addEventListener('DOMContentLoaded', function() {
                 });
             }
         }); // end bloom effect 
-
         log_msg('map,')
 
 
-		// built from layer_names array; presumes map load succeeds!
-		const layer_bar = document.getElementById('layer_bar');
-		layers_names.forEach( (lyr_name, index) => {
-			layer_bar.innerHTML += '<input type="checkbox" class="layer_chk" id="' + 
-									lyr_name + 
-									'" checked /> <span class="layer_desc" style="font-weight:bold;color:' + 
-									layers_colors[index] + '">' + lyr_name + 
-									' Rides</span> &nbsp;<input id="' + lyr_name + 
-									'" type="range" min="0" max="100" value="100" class="lyr_slide"><br>';
-		}); // end lyr_name loop
+        // built from layer_names array; presumes map load succeeds!
+        const layer_bar = document.getElementById('layer_bar');
+        layers_names.forEach( (lyr_name, index) => {
+          layer_bar.innerHTML += '<input type="checkbox" class="layer_chk" id="' + 
+                      lyr_name + 
+                      '" checked /> <span class="layer_desc" style="font-weight:bold;color:' + 
+                      layers_colors[index] + '">' + lyr_name + 
+                      ' Rides</span> &nbsp;<input id="' + lyr_name + 
+                      '" type="range" min="0" max="100" value="100" class="lyr_slide"><br>';
+        }); // end lyr_name loop
 
-		// add events to layer_bar (visibility and opacity)
-		layer_bar.addEventListener('click', function(event) {
-			// if event is checkbox (visibility toggle):
-			if (event.target.classList.contains('layer_chk')){
-				// toggle the target layer
-				layers[event.target.id].visible = event.target.checked;
-			}
+
+        // add events to layer_bar (visibility and opacity)
+        layer_bar.addEventListener('click', function(event) {
+          // if event is checkbox (visibility toggle):
+          if (event.target.classList.contains('layer_chk')){
+            // toggle the target layer
+            layers[event.target.id].visible = event.target.checked;
+          }
 		
-			// if event is slider (visibility toggle):
-			if (event.target.classList.contains('lyr_slide')){
-				// change the opacity to match slider
-				layers[event.target.id].opacity = (event.target.value/100)
-			}
-		}); // end layer_bar listener	
+          // if event is slider (visibility toggle):
+          if (event.target.classList.contains('lyr_slide')){
+            // change the opacity to match slider
+            layers[event.target.id].opacity = (event.target.value/100)
+          }
+		    }); // end layer_bar listener	
         log_msg('lyr_bar,')
 
         const run_onMapLoad = reactiveUtils.when( () => mapView.updating == false,	() => {
@@ -442,30 +463,85 @@ const run_onLoad = window.addEventListener('DOMContentLoaded', function() {
                 
             // shoehorn property:
             table.multipleSelectionEnabled = false;
-            log_msg(',tbl');        
+            log_msg('tbl');        
+
+
+
+        // complex interactive elements:
+        
+            // highlight in table?
+            table.highlightIds.on("change", (event) => {
+              highlight = event.added[0];   // gets tbl OID;
+              if (highlight) { 
+                log_msg(`<br>tbl chg: ${table.highlightIds}; set_by ${set_by}`)
+                if (set_by == 'table'){ //user requested chg
+                    // need KEY/LYR from Table (highlight is tbl_OID); 
+                    // need async function to enable await for queries:
+
+                      var pass_tbl_to_map = async function pass_tbl_to_map(tbl_oid){
+                          // get the KEY/LYR for our highlight:
+                          var tbl_feat = await lyr_query(ride_attr, "__OBJECTID", tbl_oid)
+                          // with tbl_feat.KEY/LYR, we can query the map_lyr to get its OID:
+                          var map_feat = await lyr_query(layers[tbl_feat.LYR], "KEY", tbl_feat.KEY)
+                          //log_msg('<br>'); log_msg(JSON.stringify(tbl_feat));  //log_msg('<br>'); log_msg(JSON.stringify(map_feat));
+                          // we'll hand this off again
+                          map_select(map_feat)
+
+                          return 'finished'
+                      } // end our async function: (now call it!)
+
+                      pass_tbl_to_map(highlight)
+
+                } // end if set_by=table
+              } else {
+                log_msg(`<br>tbl chg: no_feat; set_by ${set_by}`)
+              }
+            }); // end table.highlight watcher.
+
+
+
+            // popup select change?
+            reactiveUtils.watch( () => mapView.popup.selectedFeature, (sel_feat) => {
+              if (sel_feat){ // feature in popup;
+                log_msg(`<br>pop chg: ${sel_feat.attributes.KEY}; set_by: ${set_by}`)
+                if (set_by == 'map'){ // user requested chg
+                  var feature = {
+                    OID:sel_feat.attributes.__OBJECTID,
+                    KEY:sel_feat.attributes.KEY,
+                    LYR:sel_feat.attributes.Date_Yr
+                  }
+                  tbl_select(feature)
+                } else {
+                  log_msg('no resp.')
+                }
+
+              } else { // no selected feature/null
+                // fires randomly, not very reliable for actions.
+                log_msg(`<br>pop chg: no_feat; set_by: ${set_by}`)
+              }
+          }); // end popup.selectedFeature watcher.
+
+
 
             run_onMapLoad.remove()
         }); // end on_MapLoad (make table)
 
 
-		// populate dropdown from layer_names array; presumes map load succeeds!
-		select_drop = document.getElementById('tbl_yr');
-		layers_names.forEach( (lyr_name, index) => {
-			select_drop.innerHTML += '<option value="' + lyr_name + '">'+ lyr_name +'</option>'
-		}); // end populate dropdown
+        // populate dropdown from layer_names array; presumes map load succeeds!
+        select_drop = document.getElementById('tbl_yr');
+        layers_names.forEach( (lyr_name, index) => {
+          select_drop.innerHTML += '<option value="' + lyr_name + '">'+ lyr_name +'</option>'
+        }); // end populate dropdown
 
-		// add events to dropdown (year filters)
-		select_drop.addEventListener('change', function(event) {
-			tbl_filter_by_Year(select_drop.value);
-		}); // end dropdown listener
-
-
-
+        // add events to dropdown (year filters)
+        select_drop.addEventListener('change', function(event) {
+          tbl_filter_by_Year(select_drop.value);
+        }); // end dropdown listener
+    
 
 
 
     }); // end require 'load modules'
-
 
 run_onLoad.remove()
 }); // end onload;
@@ -488,9 +564,51 @@ run_onLoad.remove()
 				ride_attr.definitionExpression = where_q;
 				ride_attr.refresh();
 			}
+      return year
 	} // end year_filter function
 
+  // function to select in table:
+  async function tbl_select(feature){
+    // feature should be object with OID, KEY, LYR
+    log_msg(`<br>.. tbl.sel: ${feature.OID}, ${feature.LYR}`);
+    
+    // first, check that no filters are in the way:
+    if (feature.LYR != select_drop.value && select_drop.value != 'All'){
+      log_msg('; fixfilt')
+      var set_filt = await tbl_filter_by_Year(feature.LYR)
+        select_drop.value = set_filt;
+      log_msg(':'); log_msg(set_filt)
+    }
 
+    // query the table for the OID of KEY in table...
+       //log_msg(`<br>.. qry:`)
+    var feat_inTable = await lyr_query(ride_attr, "KEY", feature.KEY)
+       //log_msg(`${KEY}, ${feat_inTable.OID}`)
+
+    // apply highlight
+    table.highlightIds.add(feat_inTable.OID);
+
+  } // end tbl_select
+
+
+  async function map_select(feature){
+    // feature should be object with OID, KEY, LYR;
+    log_msg(`<br> ..map_sel: ${JSON.stringify(feature)}`)
+
+    // need a 'full' query here:
+    var query_obj = {where: `KEY = '${feature.KEY}'`,	outFields: ["__OBJECTID", "KEY", "Date_Yr"], returnGeometry:true}
+    var map_feat = await layers[feature.LYR].queryFeatures(query_obj)
+    var map_feat = map_feat.features[0]
+
+    // popup location:
+    var mid = Math.round(map_feat.geometry.paths[0].length/2);
+		map_feat.geometry.x = map_feat.geometry.paths[0][mid][0]
+		map_feat.geometry.y = map_feat.geometry.paths[0][mid][1]
+	
+    log_msg(` .. ${map_feat.geometry.y}, ${map_feat.geometry.y}`)
+    mapView.openPopup({ features: [map_feat], location: map_feat.geometry });
+    mapView.goTo(map_feat)
+  } // end map_select
 
 
 ////////////////////
@@ -509,15 +627,19 @@ run_onLoad.remove()
             outFields: ["__OBJECTID", "KEY", "Date_Yr"],
             returnGeometry:false
         }   
+          //log_msg(lyr_query_obj.where)
+
     	// perform the query, return the object
-		var results = await lyr.queryFeatures(lyr_query_obj)
-        var feature = {
-            OID: results.features[0].attributes.__OBJECID,
+		    var results = await lyr.queryFeatures(lyr_query_obj)
+        var lyr_feature = {
+            OID: results.features[0].attributes.__OBJECTID,
             KEY: results.features[0].attributes.KEY,
             LYR: results.features[0].attributes.Date_Yr
         }
-    return feature        
+          //log_msg(`<br>lyrq: ${JSON.stringify(lyr_feature)}`)
+    return lyr_feature        
     }
+
 
 // div toggles;  no data interactions!
 
@@ -606,9 +728,9 @@ async function do_stuff(){
           </div>
               
           <div class="tableControl_content">
-              <button type="button" onclick="do_stuff2();" class="tbl_btn">Do Stuff2</button>
+              <!--<button type="button" onclick="do_stuff2();" class="tbl_btn">Do Stuff2</button>
               <button type="button" onclick="do_stuff();" class="tbl_btn">Do Stuff</button>
-              <button type="button" onclick="zoom_to_tblSelect();" class="tbl_btn" id="zoomTo_btn" disabled>Zoom to Selection</button>	  	
+              <button type="button" onclick="zoom_to_tblSelect();" class="tbl_btn" id="zoomTo_btn" disabled>Zoom to Selection</button>	  	-->
           </div>
       </div>
       
