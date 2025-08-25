@@ -936,6 +936,7 @@ function layout_config(){
 		}
 		// check if a donotShowagain (tutorial) cookie exists:
 		var splash_init = getCookie("tutorial");
+			console.log("splashCookie", splash_init);
 		if (splash_init){
 			close_splash();
 			console.log('block tutorial by cookie');
@@ -1680,4 +1681,5 @@ console.log("End DOMContentLoaded Functions")
 
 
 </body>
+
 </html>
