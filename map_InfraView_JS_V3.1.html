@@ -960,22 +960,28 @@ function layout_config(){
 			console.log("Splash Page: ", splash_count);
 			if (splash_count == 1){
 				splash_content.innerHTML = ''+
-						'<img src="loader_map_icon.png" style="width:75px;height:75px;float:right">'+
-						'The Layer List (on the left) is used to change the data drawn in the map.  With over 100 map layers available, '+
-						'you may need to wait for the map to update fully (watch for the loading icon at the top-right of the map). '+
+						'<img src="loader_map_icon.png" style="width:65px;height:65px;float:right">'+
+						'The Layer List (on the left) controls the data drawn in the map.  With over 100 map layers available, '+
+						'you may need to wait for the map to update fully (watch the loading icon, top-right of the map). '+
 						'<br><br>Change the Basemap or review visible map symbols with the Basemaps and Legend tab below;'+
 						' use the Tables tab to get more detailed data from each map layer!'
 
 			}
 			if (splash_count == 2) {
 				splash_content.innerHTML = ''+
-						'In addition to the Basemaps and Tables, several tool widgets are embedded in the map:<br>'+
+						'<div style="text-align:left";>In addition to the Basemaps and Tables, several tool widgets are embedded in the map:'+
+						'<div style="height:8px; width:100%"></div>'+
 						'<li>Search: based on Address Locator services,</li>'+ 
-						'<li>Measure & Coordinates for spatial reference,</li>'+
-						'<li>Draw & Print: for quick markup and sharing,</li>'
+						'<li>Measure & Coordinates: for spatial reference,</li>'+
+						'<li>Draw & Print: for quick markup and sharing,</li></div>'+
+						'<div style="height:8px; width:100%"></div>There are also several bookmarked map views to access our most popular datasets.'
 			}
 			if (splash_count == 3) {
-				splash_content.innerHTML = "Last splash page!"
+				splash_content.innerHTML = ''+
+						'<br><br>This map tool was developed by the GIS Team of the Division of Information Technology at the City of Cedar Rapids.'+
+						'  We value your feedback!  If you have any trouble with the map or map data, or if you have a suggestion on ways'+
+						' we could improve this tool, please reach out to <a href="mailto:IT-GIS@cedar-rapids.org">IT-GIS@cedar-rapids.org</a>.'
+				
 				splash_next_btn.innerHTML = "Finish"
 			}
 			if (splash_count == 4) {
