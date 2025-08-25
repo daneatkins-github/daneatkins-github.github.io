@@ -964,11 +964,15 @@ function layout_config(){
 						'The Layer List (on the left) is used to change the data drawn in the map.  With over 100 map layers available, '+
 						'you may need to wait for the map to update fully (watch for the loading icon at the top-right of the map). '+
 						'<br><br>Change the Basemap or review visible map symbols with the Basemaps and Legend tab below;'+
-						' use the Tables tab to get more detailed data from each map layer!`
+						' use the Tables tab to get more detailed data from each map layer!'
 
 			}
 			if (splash_count == 2) {
-				splash_content.innerHTML = "Third splash page, ..."
+				splash_content.innerHTML = ''+
+						'In addition to the Basemaps and Tables, several tool widgets are embedded in the map:<br>'+
+						'<li>Search: based on Address Locator services,</li>'+ 
+						'<li>Measure & Coordinates for spatial reference,</li>'+
+						'<li>Draw & Print: for quick markup and sharing,</li>'
 			}
 			if (splash_count == 3) {
 				splash_content.innerHTML = "Last splash page!"
