@@ -447,6 +447,11 @@
 		#splash_content {
 			font-size:14px;
 			text-align:center;
+			width:95%;
+			margin:auto;
+			height:200px;
+			
+			border-bottom:1px solid black;
 		}
 		
 		#splash_next_btn {
@@ -541,8 +546,8 @@
 		<a href="https://crgis.cedar-rapids.org/IV/index.html">please click here</a>.
 		If you have comments or requests for this application, please 
 		<a href="https://survey123.arcgis.com/share/9d13577027034d9cb9cf3eb7d0cd7c6b">complete the provided Survey, here</a>.
-		<br>
-		<hr>
+		
+		
 	</div>
 	<div>
 		<div style="margin-left:10px; float:left; font-size:12px; align-content:middle;">
@@ -915,7 +920,10 @@ function layout_config(){
 			}
 		});
 		
+		
 		// Splash Screen Close & Next;
+		var splash = document.getElementById("splash");
+		
 		function close_splash(){
 			splash.classList.add("display_none");
 			
@@ -935,7 +943,7 @@ function layout_config(){
 		
 		
 		
-		var splash = document.getElementById("splash");
+
 		var splash_content = document.getElementById("splash_content")
 		var splash_close_btn = document.getElementById("splash_close_btn")
 		splash_close_btn.addEventListener("click", function (){
@@ -1672,5 +1680,4 @@ console.log("End DOMContentLoaded Functions")
 
 
 </body>
-
 </html>
