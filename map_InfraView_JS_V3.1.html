@@ -929,7 +929,7 @@ function layout_config(){
 			
 			// check for the splash 'do not again' checkbox 
 			var splash_doNotShowAgain = document.getElementById("splash_doNotShowAgain")
-			if (splash_doNotShowAgain.value){
+			if (splash_doNotShowAgain.checked){
 				document.cookie = "tutorial=false";
 			} 
 
@@ -1683,3 +1683,4 @@ console.log("End DOMContentLoaded Functions")
 </body>
 
 </html>
+
