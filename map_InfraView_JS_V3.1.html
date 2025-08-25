@@ -540,13 +540,12 @@
 	</div>
 	<div id="splash_content">
 
-		If you are new to this application, the next few slides will help familiarize you with the layout of this application and some of the basic map tools.
+		If you are new to this application, the next few slides will help familiarize you with the layout of this application and some of the map tools.
 		<br><br>
 		If you're looking for our older, legacy Infrastructure Viewer, 
 		<a href="https://crgis.cedar-rapids.org/IV/index.html">please click here</a>.
 		If you have comments or requests for this application, please 
 		<a href="https://survey123.arcgis.com/share/9d13577027034d9cb9cf3eb7d0cd7c6b">complete the provided Survey, here</a>.
-		
 		
 	</div>
 	<div>
@@ -929,17 +928,20 @@ function layout_config(){
 			
 			// check for the splash 'do not again' checkbox 
 			var splash_doNotShowAgain = document.getElementById("splash_doNotShowAgain")
+			console.log(splash_doNotShowAgain)
 			if (splash_doNotShowAgain.checked){
 				document.cookie = "tutorial=false";
 			} 
 
 		}
+		
 		// check if a donotShowagain (tutorial) cookie exists:
 		var splash_init = getCookie("tutorial");
-			console.log("splashCookie", splash_init);
-		if (splash_init){
+		console.log("splashCookie", splash_init);
+		if (splash_init != "" && splash_init == 'false'){
+			document.getElementById("splash_doNotShowAgain").checked = true;
 			close_splash();
-			console.log('block tutorial by cookie');
+			
 		}
 		
 		
@@ -957,7 +959,13 @@ function layout_config(){
 			splash_count += 1
 			console.log("Splash Page: ", splash_count);
 			if (splash_count == 1){
-				splash_content.innerHTML = "Second splash page, ..."
+				splash_content.innerHTML = ''+
+						'<img src="loader_map_icon.png" style="width:75px;height:75px;float:right">'+
+						'The Layer List (on the left) is used to change the data drawn in the map.  With over 100 map layers available, '+
+						'you may need to wait for the map to update fully (watch for the loading icon at the top-right of the map). '+
+						'<br><br>Change the Basemap or review visible map symbols with the Basemaps and Legend tab below;'+
+						' use the Tables tab to get more detailed data from each map layer!`
+
 			}
 			if (splash_count == 2) {
 				splash_content.innerHTML = "Third splash page, ..."
@@ -977,9 +985,11 @@ function layout_config(){
 			// should show an about modal; interim: reset splash:
 			console.log('about press');
 			splash_count = 0;
-			var restore = "If you are new to this application, the next few slides will help familiarize you with the layout of this application and some of the basic map tools.<br><br>If you're looking for our older, legacy Infrastructure Viewer, <a href='https://crgis.cedar-rapids.org/IV/index.html'>please click here</a>. If you have comments or requests for this application, please <a href='https://survey123.arcgis.com/share/9d13577027034d9cb9cf3eb7d0cd7c6b'>complete the provided Survey, here</a>.<br><hr>"
-			
-			
+			var restore = '' +
+				'If you are new to this application, the next few slides will help familiarize you with the layout of this application and some of the basic map tools.'+
+				'<br><br>If you were looking for our older, legacy Infrastructure Viewer, <a href='https://crgis.cedar-rapids.org/IV/index.html'>please click here</a>.'+
+				'If you have comments or requests for this application, please <a href='https://survey123.arcgis.com/share/9d13577027034d9cb9cf3eb7d0cd7c6b'>'+
+				'complete the provided Survey, here</a>.<br><hr>'
 			splash_content.innerHTML = restore;
 			splash.classList.remove("display_none");
 		})
@@ -1681,6 +1691,4 @@ console.log("End DOMContentLoaded Functions")
 
 
 </body>
-
 </html>
-
