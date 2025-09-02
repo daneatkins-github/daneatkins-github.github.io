@@ -1,0 +1,909 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CoCR Near Me</title>
+
+<!-- ArcGIS Import -->
+<script type="module" 		src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
+<link 	rel="stylesheet" 	href="https://js.arcgis.com/4.33/esri/themes/light/main.css" />
+<script 					src="https://js.arcgis.com/4.33/"></script>
+<script type="module" 		src="https://js.arcgis.com/4.33/map-components/"></script>
+
+
+    
+<!-- custom styles / page layout -->
+<style>
+/* Variables */
+:root {
+
+  
+}	
+	
+/* Utility Classes */
+	.hidden {
+		visibility: hidden;
+	}
+	.display_none {
+		display:none !important;
+	}
+	
+	hr {
+	  border: 1px solid #ccc;
+	  margin: 20px 0;
+	}
+
+/* Loaders (Loading Progress) */
+
+/* Primary Layout */
+
+	*{
+		margin: 	0px;
+		padding: 	0px;
+	}
+	.page_div {
+		position:relative;
+		width:100%;
+		height:100dvh;
+		background-color: gray;
+
+	}
+	
+	/* Header and Children */
+	#header{
+		display:	block;
+		position: 	relative;
+		width: 		100%;
+		height: 	48px;
+		z-index:	900;
+		background-color: green;
+		margin-bottom:2px;
+		
+		
+	}
+	#header > * {
+		vertical-align:middle;
+		line-height:normal;
+	}
+	
+		#header_title {
+			display:		inline-block;
+			position:		relative;
+				left:		15px;
+			padding-right:	20px;
+			
+			line-height:	100%;
+			font-size:		20px;
+			text-align:		center;
+			
+			width:			325px;
+			height:			100%;
+			
+			border-radius:	12px;
+
+			background-color: lightgreen;
+			white-space:	nowrap;
+		}
+			.header_title_narrow {
+				width:		50px !important;
+				padding-right: 0px !important;
+			}
+		
+		#header_title > * {
+			vertical-align:middle; 
+			line-height:normal;
+		}
+		
+			#header_title_img {
+				display:	inline-block;
+				position:	relative;
+				height:		100%;
+			}
+			#header_title_text {
+				display:	inline-block;
+				position:	relative;
+				top:		0px;
+				height:		100%;		
+				align-content:center;
+			}
+
+	
+	
+	/* Content; main view */
+	#content {
+		display:	block;
+		position: 	relative;
+		
+		width:		100%;
+		overflow: 	hidden;
+
+		white-space: nowrap;
+		height: 	calc(100dvh - 50px);
+	
+	}
+
+		#content_main {
+			position:	relative;
+			display:	inline-block;
+			width:		100%;
+			height:		100%;
+			margin:		0px;
+			background-color:white;			
+		}
+			#map_div {
+				width:100%;
+				height: 50%;
+			}
+			
+			#popup_div {
+				height: 50%;
+				width:100%;
+				overflow-y:auto;
+				font-size: clamp(8px, 3.5vw, 32px);
+				
+				justify-content:center;
+				
+				background-color:white;
+			
+			}
+			
+				.popup_content {
+					background-color:white;
+				}
+				
+				.near_me_header {
+					width:100%; 
+					text-align:center; 
+					border-top:2px solid black; 
+					border-bottom:1px solid black;
+				}
+				
+					.popup_col_key {
+						
+						width:100px;
+						padding-left:6px;
+						padding-right:6px;
+					}
+					.popup_col_val {
+						padding-left:6px;
+						padding-right:6px;	
+						border:1px solid transparent;
+					}
+						.popup_col_val:hover {
+							background-color:lightgray;
+							cursor:pointer;
+						}
+						.popup_col_val.active{
+							background-color:lightgray;
+							border:1px solid red;
+							cursor:pointer;
+						}
+					.wBorder {
+						border-bottom: 1px solid black;
+					}
+
+	
+	
+
+	
+	
+	
+
+
+
+</style>
+
+
+	
+</head>
+
+<body>
+ 
+ 
+  
+
+  
+ <div class="page_div">
+ 
+ 
+ <div id="header">
+	<div id="header_title">
+		<img src="CoCR_Tree_Logo.png" id="header_title_img"></img>
+		<span id="header_title_text">Near Me...</span>
+	</div>
+</div>
+
+<div id="content">
+	<div id="content_main">
+		<div id="map_div"></div>
+		<div id="popup_div">
+			<div class="popup_content">
+				<div id="near_me_header" class='near_me_header'><h4> Near Me...&nbsp;&nbsp;&nbsp; </h4></div>
+				<table style='font-size:.8em; border:0px; width:100%;'>
+				<tr><td></td><td colspan='1' style='text-align:center;'>(click to show details in the map...)</td							></tr>
+				<tr><td class='popup_col_key'		 >Address</td            ><td id='td_addr'        class='popup_col_val active'></td		></tr>
+				<tr><td class='popup_col_key'		 >Quadrant</td           ><td id='td_quad'        class='popup_col_val'></td	    	></tr>
+				<tr><td class='popup_col_key wBorder'>Council District</td   ><td id='td_councildist' class='popup_col_val wBorder'></td	></tr>
+				<tr><td class='popup_col_key'        >Fire District</td      ><td id='td_firedist'    class='popup_col_val'></td			></tr>
+				<tr><td class='popup_col_key'        >Police District</td    ><td id='td_policedist'  class='popup_col_val'></td			></tr>
+				<tr><td class='popup_col_key wBorder'>Waste Pickup</td       ><td id='td_solidwaste'  class='popup_col_val wBorder'></td	></tr>
+				<tr><td class='popup_col_key'        >Elementary School</td  ><td id='td_schoolelem'  class='popup_col_val'></td			></tr>
+				<tr><td class='popup_col_key'        >Middle School</td      ><td id='td_schoolmid'   class='popup_col_val'></td			></tr>
+				<tr><td class='popup_col_key wBorder'>High School</td        ><td id='td_schoolhigh'  class='popup_col_val wBorder'></td	></tr>
+				<tr><td class='popup_col_key'        >Parks</td              ><td id='td_parks' 	   class='popup_col_val'></td			></tr>
+				<tr><td class='popup_col_key'        >SSMID</td			     ><td id='td_ssmid' 	   class='popup_col_val'></td			></tr>
+				<tr><td class='popup_col_key'        >Historic Landmark</td  ><td id='td_nhrplandmark' class='popup_col_val'></td			></tr>
+				<tr><td class='popup_col_key'        >Historic District</td  ><td id='td_nhrpdistrict' class='popup_col_val'></td			></tr>
+				</table>
+			</div> <!-- popup_content -->
+		</div> <!-- popup_div -->
+	</div> <!-- content_main -->
+</div> <!-- content -->
+
+</div> <!-- end pageDiv --> 
+
+
+<script type="module">
+console.log("Script; Module... running");
+
+// ArcGIS Imports
+const Map = 				await $arcgis.import("@arcgis/core/Map.js");
+const MapView = 			await $arcgis.import("@arcgis/core/views/MapView.js");
+const FeatureLayer = 		await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
+const Graphic = await $arcgis.import("@arcgis/core/Graphic.js");
+const Query = await $arcgis.import("@arcgis/core/rest/support/Query.js");
+
+// global for 'current map_point':
+var xy_pt      = null
+const attr_graphic = '';
+
+
+// geographic distance formula:
+function haversineDistanceKM(lat1Deg, lon1Deg, lat2Deg, lon2Deg) {
+    
+	function toRad(degree) {return degree * Math.PI / 180;}
+	
+    const lat1 = toRad(lat1Deg);    const lon1 = toRad(lon1Deg);
+    const lat2 = toRad(lat2Deg);    const lon2 = toRad(lon2Deg);
+    const { sin, cos, sqrt, atan2 } = Math;
+    const R = 6371; // earth radius in km 
+    
+	const dLat = lat2 - lat1;    const dLon = lon2 - lon1;
+    const a = sin(dLat / 2) * sin(dLat / 2) + cos(lat1) * cos(lat2) * sin(dLon / 2) * sin(dLon / 2);
+    const c = 2 * atan2(sqrt(a), sqrt(1 - a)); 
+    const d = R * c;
+    return d; // distance in km
+}
+
+
+// Quick Queries:
+async function popup_geo_query(layer, point){ // exact intersect of layer&point
+	var query_obj = {
+		spatialRelationship: "intersects",
+		geometry: point,
+		outFields: ['*'],
+		returnGeometry:true
+	}
+	var result = await layer.queryFeatures(query_obj)
+	return result.features
+}
+async function popup_attr_query(layer, where){ // attribute match, where_clause
+	var query_obj = {
+		where: where,
+		outFields: ['*'],
+		returnGeometry:true
+	}	
+	var result = await layer.queryFeatures(query_obj)
+	return result.features
+}
+
+
+//Draw Graphics:
+function draw_point(x, y){ // Draws the mapView point; the user-input point; 
+	
+	mapView.graphics.removeAll(); // new grid point; wipe it!
+	attr_graphics.removeAll();
+	
+	const pt = {type:"point", x: x, y: y, spatialReference: {wkid:4326}}
+	
+	// Create a symbol for drawing the point
+	let markerSymbol = {
+	  type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+	  color: "green",
+	  outline: {color: "red", width: "4.5px"},
+	  style: "circle"
+	};
+			
+	// Create a graphic and add the geometry and symbol to it
+	let pointGraphic = new Graphic({
+	  geometry: pt,
+	  symbol: markerSymbol
+	});
+
+	mapView.graphics.add(pointGraphic); // this point is immune to attr_graphics.removeAll();
+}
+
+function draw_poly_collection(query_results){ // Draws query results: polygons,...
+    // expects full query results
+	const poly_symbol = {
+		type: "simple-fill",
+		color: [1,128,0,0.2],
+		outline: {
+			color: [0,128,0,0.8],
+			width: 2,
+		},
+	}
+
+	for (let i = 0; i < query_results.length; i++){
+		var poly_graphic = new Graphic({
+			geometry: query_results[i].geometry,
+			symbol:poly_symbol,
+		})
+		
+		attr_graphics.add(poly_graphic);
+	}
+
+	// xy_pt should exist (global).  just trying to keep our 'point' in view in case of a 'nearest' features map.goTo
+	let markerSymbol = {
+		type: "simple-marker", color: [0,0,0,0]
+	}
+	let pointGraphic = new Graphic({geometry:xy_pt, symbol: markerSymbol})
+	attr_graphics.add(pointGraphic);
+
+	// map.goTo results.
+	if (query_results[0].layer == address_lyr){ // kludging: 'wider extent' for parcels.
+		var ext = query_results[0].geometry.extent;
+		var cloneExt = ext.clone();
+		mapView.goTo({
+			target: query_results[0],
+			zoom: 15
+		})
+	} else {
+		mapView.goTo(attr_graphics.graphics);
+	}
+}
+
+
+async function call_popup(map_point){
+	// principal action: take hitTest mapPoint, query 'Near Me' attributes.  
+	
+	console.log("Point: ", map_point);
+
+	// point values:
+	var x = parseFloat((map_point.x)).toFixed(4);
+	var y = parseFloat((map_point.y)).toFixed(4)
+	var hit_loc = x + '°N, ' + y + '°W'	
+	document.getElementById("near_me_header").innerHTML = '<h4>Near me... &nbsp;&nbsp;&nbsp; ' + y + '°N, ' + x + '°W';
+	
+	// draw the hitPoint
+	draw_point(map_point.x, map_point.y);	
+
+	// 'erase' all innerHTMLs for td_popup_values	
+	var popup_vals = document.getElementsByClassName("popup_col_val");
+	for (var i = 0; i < popup_vals.length; i++){
+		popup_vals[i].innerHTML = '';
+	}
+
+
+	// Query Function for intersects within distance.
+	async function layer_query(point, layer, distance, distance_unit){
+		if (!distance){distance = 1};
+		if (!distance_unit){distance_unit = 'feet'};
+	
+		var query_obj = {
+			geometry: point,
+			spatialRelationship: "intersects",
+			distance: distance,
+			units: distance_unit,
+			outFields: ['*'],
+			returnGeometry:true
+		}
+		
+		var result = await layer.queryFeatures(query_obj);
+		return result.features;
+	}
+	
+	// Query based on immediate locations; usually just grabs the first feature.
+	layer_query(map_point, quad, 1, 'feet')
+		.then((features) => {
+			console.log(features);
+			if (features.length > 0){
+				document.getElementById("td_quad").innerHTML = features[0].attributes['Quadrant'];	
+			}
+		});
+	layer_query(map_point, councildist, 1, 'feet')
+		.then((features) => {
+			if (features.length > 0){
+				document.getElementById("td_councildist").innerHTML = features[0].attributes['PubName'];
+			}
+		})
+	layer_query(map_point, firedist, 1, 'feet')
+		.then((features) => {
+			if (features.length > 0){
+				document.getElementById("td_firedist").innerHTML = features[0].attributes['NAME'];
+			}
+		})	
+	layer_query(map_point, policedist, 1, 'feet')
+		.then((features) => {
+			if (features.length > 0){
+				document.getElementById("td_policedist").innerHTML = features[0].attributes['DIST_NME'];
+			}
+		})		
+	layer_query(map_point, solidwaste, 1, 'feet')
+		.then((features) => {
+			if (features.length > 0){
+				document.getElementById("td_solidwaste").innerHTML = features[0].attributes['DAYWEEK'];
+			}
+		})				
+	layer_query(map_point, schooldist, 1, 'feet')	// all schools from this layer:
+		.then((features) => {
+			if (features.length > 0){
+				document.getElementById("td_schoolelem").innerHTML = features[0].attributes['ElementarySchool'];
+				document.getElementById("td_schoolmid").innerHTML = features[0].attributes['MiddleSchool'];
+				document.getElementById("td_schoolhigh").innerHTML = features[0].attributes['HighSchool'];
+			}
+		})		
+
+	// Query function for nearest:
+	async function layer_nearest_query(point, layer, init_dist){
+		// start with a small distance, iterate until we have at least one feature.
+		if (!init_dist){init_dist = 528}
+		var dist = init_dist
+		var got_one = false;
+		
+		do { // iteratively query with larger distance until at least one feature.
+			var query_obj = {
+				geometry: point,
+				spatialRelationship: "intersects",
+				distance: dist,
+				units: 'feet',
+				outFields: ['*'],
+				returnGeometry:true
+			}
+		
+			var result = await layer.queryFeatures(query_obj);
+			if (result.features.length > 0){
+				got_one = true
+				console.log('Loop ended', result);
+			} else {
+				dist = dist+dist
+				console.log('Loop nearest: ', dist);
+			}
+			
+			if (dist > 50000){break}
+		
+		} while (!got_one)
+		
+		// may have received more than one results feature, now, reduce our results to 'nearest',
+		var nearest = 20;
+		var nearest_feat = ''
+		
+		for (var i = 0; i < result.features.length; i++){
+			var feature = result.features[i]
+			feature.distance = haversineDistanceKM(xy_pt.y,xy_pt.x, feature.geometry.centroid.y, feature.geometry.centroid.x)  * .62137119;
+			
+			if (feature.distance < nearest){
+				nearest = feature.distance;
+				nearest_feat = i
+			}
+		}
+		
+		// always pass a 'results array': (in this case, 'slice' our nearest feature)...
+		var return_result = result.features.slice(nearest_feat,nearest_feat+1)
+		return return_result;
+	
+	}
+	
+	// Nearest Queries:
+	// nearest parcel?
+	layer_nearest_query(map_point, address_lyr, 10)
+		.then((features) => {
+				document.getElementById("td_addr").innerHTML = features[0].attributes['SITEADDRESS']
+				draw_poly_collection(features.slice(0,1)); // only for address, here / initial graphic highlight
+		})
+		
+	// nearest park;
+	layer_nearest_query(map_point, parks)
+		.then((features) => {
+			document.getElementById("td_parks").innerHTML = features[0].attributes['NAME']
+		})
+
+	// nearest SSMID;
+	layer_nearest_query(map_point, ssmid, 2500)
+		.then((features) => {
+			document.getElementById("td_ssmid").innerHTML = features[0].attributes['Type']
+		})
+	
+	// nearest NHRP Landmark;
+	layer_nearest_query(map_point, nhrplandmark, 1500)
+		.then((features) => {
+			document.getElementById("td_nhrplandmark").innerHTML = features[0].attributes['site_name']
+		})
+		
+	// nearest NHRP District;
+	layer_nearest_query(map_point, nhrpdistrict, 1500)
+		.then((features) => {
+			document.getElementById("td_nhrpdistrict").innerHTML = features[0].attributes['Type']
+		})
+		
+	
+	// attach event listener to popup items
+	var popup_vals = await document.getElementsByClassName("popup_col_val");
+	for (var i = 0; i < popup_vals.length; i++){
+		console.log("clickListener: ", popup_vals[i].id);
+		popup_vals[i].addEventListener('mousedown', function(event){
+			attr_graphics.removeAll();	
+			popup_val_click(event)	// query for geometries, and draw the result on the map.
+		})
+		
+	}
+	
+	return true
+} // end call_popup
+	
+
+async function popup_val_click(event){
+	// eventHandler for when users interact with displayed attributes:
+		// i.e.: click on attribute, draw shape on map...
+		
+	console.log('popupClick_event:', event);
+
+	// remove all .active styles from other popup 'items';
+	var popup_vals = document.getElementsByClassName("popup_col_val");
+	for (var i = 0; i < popup_vals.length; i++){
+		popup_vals[i].classList.remove("active");
+	}
+	
+	// reset any graphics, and layers using .opacity / defExpr:
+	attr_graphics.removeAll();
+	policestation.opacity = 0;
+	firestation.opacity   = 0;
+	schoolpoints.opacity = 0;
+	schoolpoints.definitionExpression = null;
+
+	// highlight event_source/target (in popup attribute list)
+	event.target.classList.add("active");
+	
+	//query text (same as innerHTML -- as it was populated by query);
+	var q_text = event.target.innerHTML;
+	
+	// layer & field:
+	var layer = null
+	var field = null
+
+	// hard-code field-names and other actions:
+	if (event.target.id === 'td_addr'){
+		var layer = address_lyr;
+		var field = 'SITEADDRESS'
+	}
+	
+	if (event.target.id === 'td_solidwaste'){
+		var layer = solidwaste;
+		var field = 'DAYWEEK'
+	}
+
+	if (event.target.id === 'td_quad'){
+		var layer = quad;
+		var field = 'Quadrant'	
+	}
+
+	if (event.target.id === 'td_policedist'){
+		var layer = policedist;
+		var field = 'DIST_NME'
+		policestation.opacity = 1;
+	}
+
+	if (event.target.id === 'td_firedist'){
+		var layer = firedist;
+		var field = 'NAME'
+		firestation.opacity = 1
+	}	
+	
+	if (event.target.id === 'td_councildist'){
+		var layer = councildist;
+		var field = 'PubName'
+	}
+	
+	if (event.target.id === 'td_schoolelem'){
+		var layer = schooldist;
+		var field = 'ElementarySchool'
+		schoolpoints.definitionExpression = "SUB_CLASS = 'Elementary' AND CITY = 'Cedar Rapids'"
+		schoolpoints.opacity = 1;
+	}
+	if (event.target.id === 'td_schoolmid'){
+		var layer = schooldist;
+		var field = 'MiddleSchool'
+		schoolpoints.definitionExpression = "SUB_CLASS = 'Middle' AND CITY = 'Cedar Rapids'"
+		schoolpoints.opacity = 1;
+	}
+	if (event.target.id === 'td_schoolhigh'){
+		var layer = schooldist;
+		var field = 'HighSchool'
+		schoolpoints.definitionExpression = "SUB_CLASS = 'High School' AND CITY = 'Cedar Rapids'"
+		schoolpoints.opacity = 1;	
+	}
+	if (event.target.id === 'td_parks'){
+		var layer = parks;
+		var field = 'NAME'
+	}
+	if (event.target.id === 'td_ssmid'){
+		var layer = ssmid;
+		var field = 'Type'
+	}
+	if (event.target.id === 'td_nhrplandmark'){
+		var layer = nhrplandmark;
+		var field = 'site_name'
+	}
+	if (event.target.id === 'td_nhrpdistrict'){
+		var layer = nhrpdistrict;
+		var field = 'Type'
+	}
+
+	//// 
+	// call the query and draw any results:
+	if (field != null){
+		var where = field + " = '"+q_text+ "'"
+		var q_result = await popup_attr_query(layer, where);
+		draw_poly_collection(q_result);
+	}
+
+}
+
+///// END DEFINITIONS /////
+
+
+///// PROCEDURES /////
+
+
+
+//// Build a Map & View, add Near Me Grid.
+
+// map
+const map = new Map({    
+	basemap: "gray"
+}); // end map
+
+// mapView
+const mapView = new MapView({
+	container: "map_div", // Reference to the container in html/css
+	map: map,            // Reference to the map object created before the view
+	zoom: 12,             // Sets zoom level based on level of detail (LOD)
+	center: [-91.667, 41.975],     // Sets center point of view using longitude,latitude
+}); // end mapView
+
+
+const city_renderer = {type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{width:2, color:[204,85,0]}}}
+const city_bound = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/20',
+	outFields: ['*'],		opacity: 1,			popupEnabled:false,
+	renderer: city_renderer
+})
+
+
+
+
+
+map.add(city_bound)
+
+
+
+const address_lyr = new FeatureLayer({
+	url: "https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/17",
+	outFields: ['*'],
+	opacity: 0,
+	popupEnabled:false,
+});
+map.add(address_lyr);
+
+
+
+
+
+// a graphics layer for mucking about with "attribute/other Layers":
+const GraphicsLayer = await $arcgis.import("@arcgis/core/layers/GraphicsLayer.js");
+let attr_graphics   = new GraphicsLayer({
+	graphics: null,
+})
+map.add(attr_graphics);
+
+
+
+
+
+
+console.log("Fetching other layers");
+//// Add featureLayers to the Map;
+
+
+const solidwaste = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgis/rest/services/Maps/NeighborhoodApp/MapServer/0',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(solidwaste)
+
+const quad = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/19',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(quad)
+
+const councildist = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/5',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(councildist)
+
+const firedist = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/7',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(firedist)
+
+const firestation = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/6',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(firestation)
+
+
+const policedist = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/9',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(policedist)
+
+const policestation = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/8',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(policestation)
+
+
+const schooldist = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/3',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(schooldist)
+
+const schoolpoints = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/2',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(schoolpoints)
+
+const parks = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/13',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(parks)
+
+const ssmid = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/10',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(ssmid)
+
+const nhrpdistrict = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/15',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(nhrpdistrict)
+
+const nhrplandmark = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/14',
+	outFields: ['*'],		opacity: 0,			popupEnabled:false,
+})
+map.add(nhrplandmark)
+
+
+
+// Minimum for resolving URL parameters:
+// check URL params for parameters;
+const url = window.location.search
+const url_Params     = new URLSearchParams(url);
+const params = {}
+
+url_Params.forEach((value, key) => {
+	params[key] = value;
+});
+
+// kick start the map/popup :
+if (params["xy"]){				
+	console.log("... resolving URL parameter 'XY'");
+	
+	const x = params['xy'].split(",")[0]
+	const y = params['xy'].split(",")[1]
+	console.log(x, y); 
+	
+	// clientside query at xy location:
+	var xy_pt = {type: "point", x: x,	y: y, spatialReference: {wkid: 4326}}
+	call_popup(xy_pt);
+} else {
+	var xy_pt = {type: "point", x: -91.6697,	y: 41.9774, spatialReference: {wkid: 4326}}
+	call_popup(xy_pt);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+// POI/Landmarks (added last/ on Top):
+	// Create a symbol for drawing the point
+	let poiSymbol = {
+	  type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+	  color: "black",
+	  size: 4,
+	  style: "circle"
+	};
+const landmarks = new FeatureLayer({
+	url: 'https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/18',
+	outFields: ['*'],		opacity: 1,			popupEnabled:true,
+	renderer: {
+		type:'simple',
+		symbol:poiSymbol,
+	}
+})
+map.add(landmarks)
+
+
+
+// hitTest (mapView 'feature selection'); handles the Near Me analysis
+var opts = {
+	include: [city_bound],
+}
+mapView.on("click", (event) => {
+	mapView.hitTest(event, opts).then((response) => {
+	console.log("Processing mapClick...");
+	
+		if (response.results.length){ // if there's a result, we hit the city;
+			const result = response.results[0]	 // first result; get the point location;
+			xy_pt = {
+				type: "point", 
+				x: result.mapPoint.longitude, 
+				y: result.mapPoint.latitude,
+				spatialReference: {wkid: 4326}
+			}
+			
+		call_popup(xy_pt);
+		
+		} else {
+			// clicked outside city limits.
+		}	
+			
+	})
+})
+
+
+
+
+mapView.constraints = {
+
+	geometry:{
+		type:"extent",
+		xmin: -92.65,
+		ymin: 41.1,
+		xmax: -90.5,
+		ymax: 42.9
+	},
+	minScale: 500000,
+	rotationEnabled:false,
+}
+
+
+
+</script>
+
+
+
+</body>
+</html>
