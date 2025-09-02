@@ -384,6 +384,7 @@ async function call_popup(map_point){
 	var popup_vals = document.getElementsByClassName("popup_col_val");
 	for (var i = 0; i < popup_vals.length; i++){
 		popup_vals[i].innerHTML = '';
+		popup_vals[i].classList.remove('active')
 	}
 
 
