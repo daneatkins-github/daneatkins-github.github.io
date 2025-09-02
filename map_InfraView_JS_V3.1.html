@@ -911,7 +911,7 @@ function layout_config(){
 		})
 		
 		// For narrow views/mobile: remove title text.
-		window.addEventListener('resize', () => {
+		function chk_narrowView(){
 			const viewportWidth = window.innerWidth;
 			if (viewportWidth < 680){
 				document.getElementById("header_title").classList.add("header_title_narrow");
@@ -920,6 +920,11 @@ function layout_config(){
 				document.getElementById("header_title").classList.remove("header_title_narrow");
 				document.getElementById("header_title_text").classList.remove("display_none");				
 			}
+		}
+		chk_narrowView();
+		
+		window.addEventListener('resize', () => {
+			chk_narrowView()
 		});
 		
 		
@@ -1705,6 +1710,7 @@ console.log("End DOMContentLoaded Functions")
 
 </body>
 </html>
+
 
 
 
