@@ -1154,24 +1154,28 @@ search_submit.addEventListener("click", async function(event) {
 	}
 
 	var result = await address_lyr.queryFeatures(query_obj)
-	
-	// use first result (should be exact address match)...
-	// get centroid
-	var addr_point = result.features[0].geometry.centroid;
-	
-	console.log('addrPoint', addr_point);
 
-		var x = addr_point.longitude
-		var y = addr_point.latitude
-		xy_pt = {
-				type: "point", 
-				x: x,
-				y: y,
-				spatialReference: {wkid: 4326}
-			}
+	if (result.features.length > 0){
+		// use first result (should be exact address match)...
+		// get centroid
+		var addr_point = result.features[0].geometry.centroid;
+		
+		console.log('addrPoint', addr_point);
 	
-	call_popup(xy_pt);
-	
+			var x = addr_point.longitude
+			var y = addr_point.latitude
+			xy_pt = {
+					type: "point", 
+					x: x,
+					y: y,
+					spatialReference: {wkid: 4326}
+				}
+		
+		call_popup(xy_pt);
+	} else {
+		alert('We were unable to find an exact match for ', search_addr);
+		
+	}	
 
 })
 
