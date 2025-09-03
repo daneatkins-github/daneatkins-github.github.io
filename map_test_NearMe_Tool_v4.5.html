@@ -707,19 +707,6 @@ async function call_popup(map_point){
 				}
 				progress_bar.value += (1/query_count)*100				
 			})
-			
-		
-		// attach event listener to popup items
-		console.log("Popup 'listeners'")
-		var popup_vals = await document.getElementsByClassName("popup_col_val");
-		for (var i = 0; i < popup_vals.length; i++){
-			popup_vals[i].classList.remove("active");
-			popup_vals[i].addEventListener('mousedown', function(event){
-				attr_graphics.removeAll();	
-				popup_val_click(event)	// query for geometries, and draw the result on the map.
-			})
-			
-		}
 
 		// be nice: try and update the URL parameter for link-sharing:
 		const url_base = window.location.href.split('?')[0]
@@ -1091,6 +1078,17 @@ mapView.on("click", (event) => {
 	})
 })
 
+// attach event listener to popup items
+console.log("Popup 'listeners'")
+var popup_vals = await document.getElementsByClassName("popup_col_val");
+for (var i = 0; i < popup_vals.length; i++){
+	popup_vals[i].classList.remove("active");
+	popup_vals[i].addEventListener('mousedown', function(event){
+		attr_graphics.removeAll();	
+		popup_val_click(event)	// query for geometries, and draw the result on the map.
+	})
+	
+}
 
 // listener for 'show more' popup button:
 var showmore_btn = document.getElementById("showmore_btn");
