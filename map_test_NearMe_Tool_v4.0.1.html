@@ -368,11 +368,13 @@ const FeatureLayer = 		await $arcgis.import("@arcgis/core/layers/FeatureLayer.js
 const Graphic = await $arcgis.import("@arcgis/core/Graphic.js");
 const Query = await $arcgis.import("@arcgis/core/rest/support/Query.js");
 
+log('ArcGIS Imports');
+	
 // global for 'current map_point':
 var xy_pt      = null
 const attr_graphic = '';
 
-log('ArcGIS Imports');
+log('globals');
 
 // geographic distance formula:
 function haversineDistanceKM(lat1Deg, lon1Deg, lat2Deg, lon2Deg) {
@@ -391,7 +393,8 @@ function haversineDistanceKM(lat1Deg, lon1Deg, lat2Deg, lon2Deg) {
     return d; // distance in km
 }
 
-
+log('Haversine');
+	
 // Quick Queries:
 async function popup_geo_query(layer, point){ // exact intersect of layer&point
 	var query_obj = {
