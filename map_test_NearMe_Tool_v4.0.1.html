@@ -359,6 +359,11 @@
 	log('In Script Module...');
 	console.log("Script; Module... running");
 
+export declare global {
+  // maybe this
+  // var $arcgis: { import<T>?: (modules: string[]) => Promise<T> | null };
+  var $arcgis: { import?: (modules: string[]) => Promise<unknown> | null };
+}
 	
 	
 // ArcGIS Imports
