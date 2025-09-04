@@ -370,6 +370,7 @@ const Graphic = await $arcgis.import("@arcgis/core/Graphic.js");
 const Query = await $arcgis.import("@arcgis/core/rest/support/Query.js");
 */
 
+	try {
 require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/Graphic", "esri/rest/support/Query"], 
 	async function (Map, MapView, FeatureLayer, Graphic, Query) {
 
@@ -1278,6 +1279,10 @@ search_text.addEventListener('input', async function(event){
 	*/
 
 	}) // end monster require
+
+	} catch (error) {
+		log(error.message)
+	}
 
 </script>
 
