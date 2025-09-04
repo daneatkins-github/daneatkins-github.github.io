@@ -362,7 +362,13 @@
 	
 	
 // ArcGIS Imports
-const Map = 				await $arcgis.import("@arcgis/core/Map.js");
+try {
+	const Map = 				await $arcgis.import("@arcgis/core/Map.js");
+} catch (error) {
+	log(error.message)
+	
+}
+
 	log('ArcGIS Imports1');
 const MapView = 			await $arcgis.import("@arcgis/core/views/MapView.js");
 	log('ArcGIS Imports2');
