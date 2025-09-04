@@ -212,6 +212,7 @@
 				font-size: clamp(8px, 3.5vw, 32px);
 				
 				justify-content:center;
+				
 				background-color:white;
 			
 			}
@@ -343,11 +344,16 @@
 console.log("Script; Module... running");
 
 // ArcGIS Imports
+/* 
 const Map = 				await $arcgis.import("@arcgis/core/Map.js");
 const MapView = 			await $arcgis.import("@arcgis/core/views/MapView.js");
 const FeatureLayer = 		await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
 const Graphic = await $arcgis.import("@arcgis/core/Graphic.js");
 const Query = await $arcgis.import("@arcgis/core/rest/support/Query.js");
+*/
+
+require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/Graphic", "esri/rest/support/Query"], 
+	async function (Map, MapView, FeatureLayer, Graphic, Query) {
 
 // global for 'current map_point':
 var xy_pt      = null
@@ -719,7 +725,7 @@ async function call_popup(map_point){
 
 	} else {
 		// must not have gotten any results from city_bound query.  
-		alert("Sorry but that location appears to be outside our city!");
+
 	}
 	
 	return true
@@ -1073,12 +1079,22 @@ mapView.on("click", (event) => {
 		
 		} else {
 			// clicked outside city limits.
-			
+			alert("Sorry, but that location appears to be outside our city!");
 		}	
 	})
 })
 
-// attach event listener to popup items
+
+// listener for 'show more' popup button:
+var showmore_btn = document.getElementById("showmore_btn");
+showmore_btn.addEventListener("click", function(event) {
+	// works once, then button is hidden.  Reset when popup refreshes using show_more('off').
+	show_more();
+
+})
+
+// listeners for 'attribute queries' (click in popup):
+	
 console.log("Popup 'listeners'")
 var popup_vals = await document.getElementsByClassName("popup_col_val");
 for (var i = 0; i < popup_vals.length; i++){
@@ -1090,13 +1106,6 @@ for (var i = 0; i < popup_vals.length; i++){
 	
 }
 
-// listener for 'show more' popup button:
-var showmore_btn = document.getElementById("showmore_btn");
-showmore_btn.addEventListener("click", function(event) {
-	// works once, then button is hidden.  Reset when popup refreshes using show_more('off').
-	show_more();
-
-})
 
 // GEOLOCATION (Locate Button)
 var locate_btn = document.getElementById('locate_btn');
@@ -1152,14 +1161,15 @@ search_submit.addEventListener("click", async function(event) {
 	}
 
 	var result = await address_lyr.queryFeatures(query_obj)
-
+	
 	if (result.features.length > 0){
+		
 		// use first result (should be exact address match)...
 		// get centroid
 		var addr_point = result.features[0].geometry.centroid;
 		
 		console.log('addrPoint', addr_point);
-	
+
 			var x = addr_point.longitude
 			var y = addr_point.latitude
 			xy_pt = {
@@ -1170,10 +1180,10 @@ search_submit.addEventListener("click", async function(event) {
 				}
 		
 		call_popup(xy_pt);
-	} else {
-		alert(`We were unable to find an exact match for the address: '${search_addr}'`)
 		
-	}	
+	} else {
+		alert(`We were unable to find an exact match for the address: '${search_addr}'`);
+	}
 
 })
 
@@ -1218,6 +1228,7 @@ async function search_address_filter(){
 	var address_list = []
 	var options_string = ''
 
+	
 	for (var i = 0; i < result.features.length; i++){
 		var addr = result.features[i].attributes['SITEADDRESS']
 		address_list.push(addr)
@@ -1242,7 +1253,7 @@ search_text.addEventListener('input', async function(event){
 })
 
 
-
+}) //end monster require.
 </script>
 
 
