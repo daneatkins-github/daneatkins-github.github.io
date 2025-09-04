@@ -372,6 +372,7 @@ const Query = await $arcgis.import("@arcgis/core/rest/support/Query.js");
 var xy_pt      = null
 const attr_graphic = '';
 
+log('ArcGIS Imports');
 
 // geographic distance formula:
 function haversineDistanceKM(lat1Deg, lon1Deg, lat2Deg, lon2Deg) {
@@ -412,7 +413,8 @@ async function popup_attr_query(layer, where){ // attribute match, where_clause
 	return result.features
 }
 
-
+log('Query Funcs');
+	
 //Draw Graphics:
 function draw_point(x, y){ // Draws the mapView point; the user-input point; 
 	
@@ -490,7 +492,8 @@ function draw_poly_collection(query_results){ // Draws query results: polygons,.
 		mapView.goTo(attr_graphics.graphics);
 	}
 }
-
+	
+log('Graphic Funcs');
 
 async function call_popup(map_point){
 	// principal action: take hitTest mapPoint, query 'Near Me' attributes.  
