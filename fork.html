@@ -897,17 +897,7 @@ const city_bound = new FeatureLayer({
 	renderer: city_renderer
 })
 map.add(city_bound)
-
-
-const address_lyr = new FeatureLayer({
-	url: "https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/17",
-	outFields: ['*'],
-	opacity: 0,
-	popupEnabled:false,
-});
-map.add(address_lyr);
-
-mapView.whenLayerView(address_lyr)
+mapView.whenLayerView(city_bound)
     .then(function(layerView) {
       //mapView is ready for hitTest.
 			// hitTest (mapView 'feature selection'); handles the Near Me analysis
@@ -933,11 +923,18 @@ mapView.whenLayerView(address_lyr)
 						alert("Sorry, but that location appears to be outside our city!");
 					}	
 				})
-			})
-			
-
-		
+			})		
     })
+
+
+const address_lyr = new FeatureLayer({
+	url: "https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Near_Me_Map_Layers/FeatureServer/17",
+	outFields: ['*'],
+	opacity: 0,
+	popupEnabled:false,
+});
+map.add(address_lyr);
+
 
 
 // a graphics layer for mucking about with "attribute/other Layers":
