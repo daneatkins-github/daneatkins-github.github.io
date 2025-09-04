@@ -339,15 +339,23 @@
 </div> <!-- end pageDiv --> 
 
 
-<div id="logger style="position:absolute; right:0; top:0; background-color:white; width:200px, height 600px; overflow-y:scroll;">
+<div id="logger" style="position:absolute; right:0; top:0; background-color:white; width:200px, height 600px; overflow-y:scroll;">
   Logger.<br>
 </div>
 
 
   
 <script type="module">
-console.log("Script; Module... running");
+	const logger = document.getElementById('logger')
 
+	function log(msg){
+		logger.innerHTML += '<br>'
+		logger.innerHTML += msg
+	}
+	
+	console.log("Script; Module... running");
+
+	
 // ArcGIS Imports
 const Map = 				await $arcgis.import("@arcgis/core/Map.js");
 const MapView = 			await $arcgis.import("@arcgis/core/views/MapView.js");
@@ -482,7 +490,7 @@ function draw_poly_collection(query_results){ // Draws query results: polygons,.
 async function call_popup(map_point){
 	// principal action: take hitTest mapPoint, query 'Near Me' attributes.  
 	console.log("Point: ", map_point);
-	
+	log('calling popup');
 
 	// progress:
 	var progress_bar = document.getElementById('progress_bar')
@@ -866,6 +874,7 @@ async function popup_val_click(event){
 
 ///// END DEFINITIONS /////
 
+	log('functions defined');
 
 ///// PROCEDURES /////
 
@@ -894,7 +903,7 @@ const mapView = new MapView({
 			},
 		minScale: 500000, rotationEnabled:false,
 	}
-
+log('map & mapView defined');
 
 const city_renderer = {type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{width:2, color:[204,85,0]}}}
 const city_bound = new FeatureLayer({
@@ -1009,7 +1018,7 @@ const cipproject = new FeatureLayer({
 map.add(cipproject)
 
 
-
+log('adding layers');
 
 // Minimum for resolving URL parameters:
 // check URL params for parameters;
@@ -1021,6 +1030,8 @@ url_Params.forEach((value, key) => {
 	params[key] = value;
 });
 
+log('url params');
+	
 // kick start the map/popup :
 if (params["xy"]){				
 	console.log("... resolving URL parameter 'XY'");
@@ -1038,6 +1049,7 @@ if (params["xy"]){
 }
 
 
+	
 // POI/Landmarks (added last/ on Top):
 // Create a symbol for drawing the point
 let poiSymbol = {
