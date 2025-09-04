@@ -359,33 +359,21 @@
 	log('In Script Module...');
 	console.log("Script; Module... running");
 
-export declare global {
-  // maybe this
-  // var $arcgis: { import<T>?: (modules: string[]) => Promise<T> | null };
-  var $arcgis: { import?: (modules: string[]) => Promise<unknown> | null };
-}
 	
-	
+
 // ArcGIS Imports
-try {
-	const Map = 				await $arcgis.import("@arcgis/core/Map.js");
-} catch (error) {
-	log(error.message)
-	
-}
-
-	log('ArcGIS Imports1');
+/* 
+const Map = 				await $arcgis.import("@arcgis/core/Map.js");
 const MapView = 			await $arcgis.import("@arcgis/core/views/MapView.js");
-	log('ArcGIS Imports2');
 const FeatureLayer = 		await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
-	log('ArcGIS Imports3');
 const Graphic = await $arcgis.import("@arcgis/core/Graphic.js");
-	log('ArcGIS Imports4');
 const Query = await $arcgis.import("@arcgis/core/rest/support/Query.js");
-	log('ArcGIS Imports5');
+*/
 
-log('ArcGIS Imports');
-	
+require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/Graphic", "esri/rest/support/Query"], 
+	async function (Map, MapView, FeatureLayer, Graphic, Query) {
+
+log('in require')
 // global for 'current map_point':
 var xy_pt      = null
 const attr_graphic = '';
@@ -1289,6 +1277,7 @@ search_text.addEventListener('input', async function(event){
 	
 	*/
 
+	}) // end monster require
 
 </script>
 
