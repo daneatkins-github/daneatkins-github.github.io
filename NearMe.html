@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CoCR Near Me</title>
+
+<!-- ArcGIS Import -->
+<script type="module" 		src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
+<link 	rel="stylesheet" 	href="https://js.arcgis.com/4.33/esri/themes/light/main.css" />
+<script 					src="https://js.arcgis.com/4.33/"></script>
+<script type="module" 		src="https://js.arcgis.com/4.33/map-components/"></script>
+
+
+    
+<!-- custom styles / page layout -->
+<style>
+/* Variables */
+:root {
+
+  
+}	
+	
+/* Utility Classes */
+	.hidden {
+		visibility: hidden;
+	}
+	.display_none {
+		display:none !important;
+	}
+	
+	hr {
+	  border: 1px solid #ccc;
+	  margin: 20px 0;
+	}
+
+/* Loaders (Loading Progress) */
+
+/* Primary Layout */
+
+	*{
+		margin: 	0px;
+		padding: 	0px;
+	}
+	.page_div {
+		position:relative;
+		width:100%;
+		height:100dvh;
+		background-color: gray;
+
+	}
+	
+	/* Header and Children */
+	#header{
+		display:	block;
+		position: 	relative;
+		width: 		100%;
+		height: 	48px;
+		z-index:	900;
+		background-color: green;
+		margin-bottom:2px;
+		
+		
+	}
+	#header > * {
+		vertical-align:middle;
+		line-height:normal;
+	}
+	
+		#header_title {
+			display:		inline-block;
+			position:		relative;
+				left:		15px;
+			padding-right:	20px;
+			
+			line-height:	100%;
+			font-size:		20px;
+			text-align:		center;
+			
+			width:			325px;
+			height:			100%;
+			
+			border-radius:	12px;
+
+			background-color: lightgreen;
+			white-space:	nowrap;
+		}
+			.header_title_narrow {
+				width:		50px !important;
+				padding-right: 0px !important;
+			}
+		
+		#header_title > * {
+			vertical-align:middle; 
+			line-height:normal;
+		}
+		
+			#header_title_img {
+				display:	inline-block;
+				position:	relative;
+				height:		100%;
+			}
+			#header_title_text {
+				display:	inline-block;
+				position:	relative;
+				top:		0px;
+				height:		100%;		
+				align-content:center;
+			}
+
+	
+	
+	/* Content; main view */
+	#content {
+		display:	block;
+		position: 	relative;
+		
+		width:		100%;
+		overflow: 	hidden;
+
+		white-space: nowrap;
+		height: 	calc(100dvh - 50px);
+	
+	}
+
+		#content_main {
+			position:	relative;
+			display:	inline-block;
+			width:		100%;
+			height:		100%;
+			margin:		0px;
+			background-color:white;			
+		}
+			#map_div {
+				width:100%;
+				height: 50%;
+			}		
+
+			#popup_div {
+				height: 50%;
+				width:100%;
+				overflow-x:hidden;
+				overflow-y:auto;
+				font-size: clamp(8px, 3.5vw, 32px);
+				
+				justify-content:center;
+				
+				background-color:white;
+			
+			}
+			
+				.popup_content {
+					background-color:white;
+				}
+				
+				.near_me_header {
+					width:100%; 
+					text-align:center; 
+					border-top:2px solid black; 
+					border-bottom:1px solid black;
+				}
+				
+					.tr_showmore {
+						/* used to 'get' all elements in javascript */
+					}
+					.tr_hide {
+						/* toggled by a show more button */
+						display:none;
+					}
+					#showmore_btn {
+						justify-content:center;
+						text-align:center;
+						font-style:italic;
+						background-color:rgb(240,240,220)
+					}
+						#showmore_btn:hover {
+							background-color:lightgray;
+							cursor:pointer;
+						}
+				
+					.popup_col_key {
+						
+						width:100px;
+						padding-left:6px;
+						padding-right:6px;
+					}
+					.popup_col_val {
+						padding-left:6px;
+						padding-right:6px;	
+						border:1px solid transparent;
+						text-align:left;
+						justify-content:left;
+					}
+						.popup_col_val:hover {
+							background-color:lightgray;
+							cursor:pointer;
+						}
+						.popup_col_val.active{
+							background-color:lightgray;
+							border:1px solid red;
+							cursor:pointer;
+						}
+					.wBorder {
+						border-bottom: 1px solid black;
+					}
+
+</style>
+
+  <script type="module" crossorigin src="/assets/index-BP1DjFrO.js"></script>
+</head>
+
+<body>
+  
+<div class="page_div">
+ 
+ 
+<div id="header">
+	<div id="header_title">
+		<img src="/assets/CoCR_Tree_Logo-C2k3O8xR.png" id="header_title_img"></img>
+		<span id="header_title_text">Near Me...</span>
+	</div>
+</div>
+
+<div id="content">
+	<div id="content_main">
+		<div id="map_div">
+			<arcgis-map basemap="topo" center="-98,42" zoom="15">
+				<arcgis-zoom position="top-left"></arcgis-zoom>
+				<arcgis-search position="top-right"></arcgis-search>
+			</arcgis-map>
+		</div>
+		<div id="popup_div">
+			<div class="popup_content">
+				<div id="near_me_header" class='near_me_header'>
+					<h4> Near Me...&nbsp;&nbsp;&nbsp; </h4><br> 
+				</div>
+				<div class='near_me_header'>
+					<calcite-progress id='progress_bar' label='Near me progress' value="00" style='width:100%;'></calcite-progress>
+				</div>
+				<table style='font-size:.8em; border:0px; width:100%;'>
+				<tr><td></td><td colspan='1' style='font-size:.8em;text-align:center;'>(click to show area details in the map...)</td							></tr>
+				<tr><td class='popup_col_key'		 >Address</td            ><td id='td_addr'        class='popup_col_val active'></td		></tr>
+				<tr><td class='popup_col_key'		 >Quadrant</td           ><td id='td_quad'        class='popup_col_val'></td	    	></tr>
+				<tr><td class='popup_col_key wBorder'>Council District</td   ><td id='td_councildist' class='popup_col_val wBorder'></td	></tr>
+				<tr><td class='popup_col_key'        >Fire District</td      ><td id='td_firedist'    class='popup_col_val'></td			></tr>
+				<tr><td class='popup_col_key'        >Police District</td    ><td id='td_policedist'  class='popup_col_val'></td			></tr>
+				<tr><td class='popup_col_key wBorder'>Waste Pickup</td       ><td id='td_solidwaste'  class='popup_col_val wBorder'></td	></tr>
+				<tr><td class='popup_col_key'        >Elementary School</td  ><td id='td_schoolelem'  class='popup_col_val'></td			></tr>
+				<tr><td class='popup_col_key'        >Middle School</td      ><td id='td_schoolmid'   class='popup_col_val'></td			></tr>
+				<tr><td class='popup_col_key wBorder'>High School</td        ><td id='td_schoolhigh'  class='popup_col_val wBorder'></td	></tr>
+				
+				<tr id='tr_showmore_btn'><td id='showmore_btn' colspan='2'>  Show more... </td></tr>
+				<tr class='tr_showmore tr_hide'><td class='popup_col_key'        >Parks</td              ><td id='td_parks' 	   class='popup_col_val'></td			></tr>
+				<tr class='tr_showmore tr_hide'><td class='popup_col_key'        >SSMID</td			     ><td id='td_ssmid' 	   class='popup_col_val'></td			></tr>
+				<tr class='tr_showmore tr_hide'><td class='popup_col_key'        >Historic Landmark</td  ><td id='td_nhrplandmark' class='popup_col_val'></td			></tr>
+				<tr class='tr_showmore tr_hide wBorder'><td class='popup_col_key'>Historic District</td  ><td id='td_nhrpdistrict' class='popup_col_val'></td			></tr>
+				<tr class='tr_showmore tr_hide'><td class='popup_col_key'        >Civil Projects</td     ><td id='td_cipproject'   class='popup_col_val'></td			></tr>
+				
+				</table>
+			</div> <!-- popup_content -->
+		</div> <!-- popup_div -->
+	</div> <!-- content_main -->
+</div> <!-- content -->
+
+</div> <!-- end pageDiv --> 
+
+
+
+
+
+</body>
+</html>
