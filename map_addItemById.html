@@ -1,0 +1,1729 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CoCR Infrastructure Viewer</title>
+
+
+    
+<!-- custom styles / page layout -->
+<style>
+/* Variables */
+
+:root {
+  --footer_height: 40px;
+  --sidebar_width: 360px;
+
+	height: 100dvh;
+}	
+	
+/* Utility Classes */
+	.hidden {
+		visibility: hidden;
+	}
+	.display_none {
+		display:none !important;
+	}
+	
+	hr {
+	  border: 1px solid #ccc;
+	  margin: 20px 0;
+	}
+
+/* Loaders (Loading Progress) */
+	#loader_init {                
+		position:fixed;
+		height:100%; width:100%;
+		background-color:white;
+		z-index:5999;
+		align-content:center;
+		justify-content:center;
+		font-size:24px;
+
+		}
+
+	#loader_map {
+		position:absolute;
+		right:4px;
+		top:1px;
+		border-radius:35px;
+		background-color:red;
+		
+	}
+
+/* Primary Layout */
+
+	*{
+		margin: 	0px;
+		padding: 	0px;
+	}
+	.page_div {
+		position:relative;
+		width:100%;
+		height:100vh;
+		height:100dvh;
+		background-color: gray;
+
+	}
+	
+	/* Header and Children */
+	#header{
+		display:	block;
+		position: 	relative;
+		width: 		100%;
+		height: 	48px;
+		z-index:	900;
+		background-color: green;
+		margin-bottom:2px;
+		
+		
+	}
+	#header > * {
+		vertical-align:middle;
+		line-height:normal;
+	}
+	
+		#header_title {
+			display:		inline-block;
+			position:		relative;
+				left:		15px;
+			padding-right:	20px;
+			
+			line-height:	100%;
+			font-size:		20px;
+			text-align:		center;
+			
+			width:			325px;
+			height:			100%;
+			
+			border-radius:	12px;
+
+			background-color: lightgreen;
+			white-space:	nowrap;
+		}
+			.header_title_narrow {
+				width:		50px !important;
+				padding-right: 0px !important;
+			}
+		
+		#header_title > * {
+			vertical-align:middle; 
+			line-height:normal;
+		}
+		
+			#header_title_img {
+				display:	inline-block;
+				position:	relative;
+				height:		100%;
+			}
+			#header_title_text {
+				display:	inline-block;
+				position:	relative;
+				top:		0px;
+				height:		100%;		
+				align-content:center;
+			}
+
+		#header_signOn {
+			display:		inline-block;
+			position:		relative;
+				left:		15px;
+			line-height:	100%;
+			font-size:		14px;
+			text-align:		center;
+			width:			140px;
+			height:			100%;
+			border-radius:	12px;
+			background-color: lightgreen;
+			white-space:	nowrap;
+		}	
+			.header_signOn_btn {
+				align-content:center;
+				height:50%;
+				width:140px;
+				color:gray;
+			}
+			.signOn_active {
+				font-weight:bold;
+				color:black;
+			}
+			.header_signOn_hover:hover {
+				cursor:pointer;
+				background-color:#adff2f;
+			}
+			.header_signOn_success {
+				background-color: #cc0600 !important;
+			}
+		
+	
+		#header_menu_btn {
+			position:relative;
+			display:inline-block;
+			
+			
+			
+			cursor:pointer;
+			text-align:center;
+			align-content:center;
+			border-top-left-radius:12px;
+			height:100%;
+			width:160px;
+
+			border-left:1px solid black;
+			background-color:wheat;
+			
+		
+		}
+			#header_menu_btn:hover{
+				background-color:tan;
+			}
+		
+		
+		#header_menu_content {
+				position:absolute;
+				right:0px;
+				top:48px;
+				border-left: 1px solid black;
+				border-bottom: 1px solid black;
+				width:100%;
+				background-color:wheat;
+				z-index: 800;
+		}
+
+			.header_menu_content_item {
+				cursor:				pointer;
+				justify-content:	right;
+				border-top: 		1px solid black;
+				font-size:			12px;
+				padding-left:		5px;
+				padding-right:		5px;
+			}
+				.header_menu_content_item:hover {
+					background-color:tan;
+				}
+
+
+	
+	
+	/* Content; main view */
+	#content {
+		display:	block;
+		position: 	relative;
+		
+		width:		100%;
+		overflow: 	hidden;
+
+		white-space: nowrap;
+		height: 	calc(100dvh - (50px + var(--footer_height)) );
+	
+	}
+		.content_footer_enlarged {
+			top:-1px;
+			height: 1px !important;
+			/* collapse content for enlarged footer, but keep map_element displayed */
+		}
+	
+		#content_leftSidebar_open {
+			display:	inline-block;
+			position:	relative;
+			width:		var(--sidebar_width);
+			height: 	100%;
+			background-color: 	lightblue;
+		}
+			#sidebar_collapse_btn {
+				text-align:right;
+				padding-right:15px;
+				cursor:pointer;
+				height:28px;
+				background-color:lightblue;
+			}
+				#sidebar_collapse_btn:hover{
+					background-color:#03b1fc;
+				}
+			
+			#layer-list {
+				overflow:auto;
+				height:calc(100% - 28px);
+				white-space:wrap;
+				
+			}
+
+		#content_leftSidebar_closed {
+			display:	inline-block;
+			position:	relative;
+			width:		30px;
+			height:		100%;
+			background-color: lightblue;
+		}	
+			#sidebar_expand_btn {
+				font-size:1.1em;
+				height:100%;
+				text-align:center; 
+				writing-mode: vertical-lr;
+				cursor:pointer;
+				background-color:lightblue;
+			}
+				.sidebar_expand_btn:hover {
+					background-color:#03b1fc;
+				}
+
+		#content_main {
+			position:	relative;
+			display:	inline-block;
+			width:		calc(100% - var(--sidebar_width));
+			height:		100%;
+			margin:		0px;
+			background-color:white;			
+		}
+			
+
+
+
+
+
+
+	/* Footer; tab-nav and tab-content blocks */
+	#footer{
+		position:	relative;
+		display:	block;
+		height:		var(--footer_height);
+		width: 		100%;
+		background-color:lightgray;		
+		
+	}
+		.footer_enlarged {
+			height: calc(100vh - 50px) !important;
+			margin-top:-1px;
+		}
+
+	/* Footer Menu Tabs */
+		.tab {
+		  height:	38px;
+		  overflow: hidden;
+		  border: 1px solid #ccc;
+		  background-color: #f1f1f1;
+		  display:flex;
+		  flex-wrap:nowrap;
+		  justify-content:right;
+		}
+		
+			.tab button {
+			  height:100%;
+			  background-color: inherit;
+			  border: none;
+			  outline: none;
+			  cursor: pointer;
+			  padding: 10px 16px;
+			  transition: 0.3s;
+			  font-size: 17px;
+			  border-left: 1px solid black;
+			}
+				.tab button:hover {
+				  background-color: #ddd;
+				}
+
+			.tab button.active {
+				background-color: #ccc;
+			}
+
+		.tabcontent {
+		  overflow:auto;
+		  height: calc(100% - 40px);
+		}
+
+		
+			#feature-table {
+				height:100%; /* required to see table_grid */
+			
+			}
+
+
+/* 'Popup Modals' (i.e., Custom Filter Widget; About Window; Splash) */
+
+	/* Filter Modal */
+	
+	#filter-modal {
+		width:300px;
+		position:absolute;
+		left:65px;
+		top:70px;
+		padding:3px;
+		margin:auto;
+		background-color:#F79D00;
+		z-index:901;
+		
+		max-height:60vh;
+		overflow-y:auto;
+		border:2px solid #A84420;
+		
+	}
+		.filter_close_modal_btn {
+			cursor:pointer;
+			font-weight:bold;
+			border:1px solid black;
+			background-color:red;
+			height:21px;
+			margin-left:3px; margin-top:3px;
+			align-content:center;
+			float:right;
+		}
+			.filter_close_modal_btn:hover {
+				background-color: #8C1801;
+			}
+	
+		.filter_layerItem {
+			font-size:12px;
+			margin:3px;
+			padding:3px;
+			border: 1px solid black;
+			background-color: #FFF0D7
+		}
+			.filter_remove_btn {
+				cursor:pointer;
+				font-size:10px;
+				border:1px solid black;
+				background-color:red;
+				height:16px;
+				margin-left:3px; margin-top:3px;
+				float:right;
+				padding-left:2px;
+				padding-right:2px;
+			}
+				.filter_remove_btn:hover {
+					background-color: #8C1801;
+				}
+	
+
+	.arcgis-filter { /* Calcite Icon (in map) */
+		position:absolute !important;
+		top:16px	!important;
+		left:55px   !important;
+		z-index:755;
+		cursor:pointer;
+		padding:3px;
+		background-color:orange;
+		border:1px solid red;
+	}
+
+	
+	
+	
+	/* Splash Page */
+	#splash {
+		position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%,-50%);
+		z-index:9999;
+		
+		padding:	10px;
+		width: 		400px;
+		height:		300px;
+		
+		text-align:center;
+		
+		background-color:white;
+		border:2px solid black;	
+	}
+		#splash_close_btn {
+			cursor:pointer;
+			font-weight:bold;
+			border:1px solid black;
+			background-color:red;
+			height:21px;
+			margin-left:3px; margin-top:3px;
+			padding-left:3px; padding-right:3px;
+			padding-bottom:3px;
+			align-content:center;
+			float:right;
+		}
+			.splash_close_btn:hover {
+				background-color: #8C1801;
+			}
+		#splash_title {
+			font-size:16px;
+			font-weight:bold;
+			margin-bottom:4px;
+		}
+		#splash_content {
+			font-size:14px;
+			text-align:center;
+			width:95%;
+			margin:auto;
+			height:200px;
+			
+			border-bottom:1px solid black;
+		}
+		
+		#splash_next_btn {
+			position:absolute;
+				right:5px;
+				bottom:5px;
+			cursor:pointer;
+			border:2px solid gray;
+			padding-left:8px;
+			padding-right:8px;
+			border-radius:4px;
+			background-color:lightgray;
+		}
+			#splash_next_btn:hover {
+				background-color:gray;
+			}
+	
+	
+	
+	
+	
+	/* About Button & Page */
+	
+	#expand_about_icon { /* icon in map */
+		position:absolute;
+		top:16px;
+		right:20px;
+
+		padding:3px;		
+		border: 1px solid gray;
+		
+		
+		background-color:rgba(255,255,255,.5);
+		z-index:700;
+	}
+		#expand_about_icon:hover {
+			cursor:pointer;
+			background-color:lightgray;
+		}
+			
+
+
+
+	
+		
+	
+	
+
+
+	
+	
+	
+	
+
+
+
+</style>
+
+	
+<!-- ArcGIS Import -->
+<script type="module" 		src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
+<link 	rel="stylesheet" 	href="https://js.arcgis.com/4.33/esri/themes/light/main.css" />
+<script 					src="https://js.arcgis.com/4.33/"></script>
+<script type="module" 		src="https://js.arcgis.com/4.33/map-components/"></script>
+
+
+	
+</head>
+
+<body>
+ 
+ 
+  <div class="loader_init" id="loader_init">
+	  <div style="width:100vw;text-align:center;">
+		Loading the City of Cedar Rapids' <br>
+		Infrastructure Viewer
+	 </div>
+	<calcite-loader label="Loading application" scale="l"></calcite-loader>
+  </div>
+  
+  <div id="splash">
+	<div id="splash_close_btn">X</div>
+	<div id="splash_title">
+	Welcome to the City of Cedar Rapids<br>
+	GIS Infrastructure Viewer
+	</div>
+	<div id="splash_content">
+
+		If you are new to this application, the next few slides will help familiarize you with the layout of this application and some of the map tools.
+		<br><br>
+		If you're looking for our older, legacy Infrastructure Viewer, 
+		<a href="https://crgis.cedar-rapids.org/IV/index.html">please click here</a>.
+		If you have comments or requests for this application, please 
+		<a href="https://survey123.arcgis.com/share/9d13577027034d9cb9cf3eb7d0cd7c6b">complete the provided Survey, here</a>.
+		
+	</div>
+	<div>
+		<div style="margin-left:10px; float:left; font-size:12px; align-content:middle;">
+			<input type="checkbox" id="splash_doNotShowAgain" style="margin-top:3px;"> &nbsp;&nbsp;Do not show tutorial again.</input>
+		</div>
+		<div id="splash_next_btn">Next</div>
+	</div>
+  </div>
+
+  
+ <div class="page_div">
+ 
+ 		<div id="filter-modal" class="display_none">
+			<div style="text-align:center;">Configure Filters:
+				<div id="filter_close_btn" class="filter_close_modal_btn">&nbsp;X&nbsp;</div>
+			</div>
+			<div id="filter-container">
+			
+			</div>
+			<div style="float:right;">
+				<button id="disable_filters_btn">&nbsp;Disable Filters&nbsp;</button>
+				<button id="apply_filters_btn"  >&nbsp;Apply Filters&nbsp;</button>
+			</div>
+			
+		</div>
+ 
+ <div id="header">
+	<div id="header_title">
+		<img src="CoCR_Tree_Logo.png" id="header_title_img"></img>
+		<span id="header_title_text">Infrastructure Viewer</span>
+	</div>
+	<div id="header_signOn">
+		<div id="signOnBtn_Public" class="header_signOn_btn signOn_active">Public View</div>
+		<div id="signOnBtn_Staff"  class="header_signOn_btn header_signOn_hover" title="Sign-in required">Staff View</div>
+	</div>
+	<div class="header_menu_btn" id="header_menu_btn">
+		Bookmarked Views
+		
+		<div id="header_menu_content" class="display_none">
+			<div class="header_menu_content_item" id="projects">CIP Project Tracking</div>
+			<div class="header_menu_content_item" id="streets" >Streets Maintenance</div>
+			<div class="header_menu_content_item" id="mowing"  >Mowing Responsibility</div>
+			<div class="header_menu_content_item" id="snowops" >Snow Operations</div>
+			<div class="header_menu_content_item" id="water"   >Water Utilities</div>
+			<div class="header_menu_content_item" id="sanitary">Sanitary Sewer</div>
+			<div class="header_menu_content_item" id="storm"   >Storm Sewer</div>
+		</div>
+	
+		
+		
+	</div>
+
+	
+</div>
+<div id="content">
+	<div id="content_leftSidebar_open">
+		<div id="sidebar_collapse_btn"><<< Hide Layer List</div>
+		<arcgis-layer-list id="layer-list" reference-element="map_main" position="top-right"></arcgis-layer-list>	
+	</div>
+	<div id="content_leftSidebar_closed" class="display_none">
+		<div id="sidebar_expand_btn">Expand Layer List</div>
+	</div>
+	
+	<div id="content_main">
+
+		<!-- map top-right -->
+		<div id="loader_map">
+			<calcite-loader label="Map Updating" scale="m"></calcite-loader>
+		</div>
+		  <calcite-icon icon="information" scale="m" title="About..." id="expand_about_icon"></calcite-icon>
+		
+		  
+		 <calcite-icon icon="filter" scale="m" title="Active Filters" id="active_filters_btn" class="arcgis-filter display_none"></calcite-icon>
+		
+		<arcgis-map id="map_main" basemap="topo">
+			
+
+		  <!-- basic buttons -->
+		  <arcgis-home    position="top-left"></arcgis-home>
+		  <arcgis-compass position="top-left"></arcgis-compass>
+		  <arcgis-zoom    position="top-left"></arcgis-zoom>	
+		  <arcgis-expand id="expand_search" position="top-left">
+			<arcgis-search></arcgis-search>
+		  </arcgis-expand>
+
+			
+
+		  <!-- map bottom-right -->
+		  <arcgis-scale-bar position="bottom-right" unit="dual"></arcgis-scale-bar>
+			
+
+		  <!-- Map bottom-left -->
+		  <arcgis-expand id = "expand_measure" position="bottom-left" mode="floating">
+			<arcgis-distance-measurement-2d position="top-right"></arcgis-distance-measurement-2d>				  
+		  </arcgis-expand>
+		  <arcgis-expand id="expand_coords"  position="bottom-left" mode="floating">
+			<arcgis-coordinate-conversion position="bottom-left" hide-expand-button></arcgis-coordinate-conversion>
+		  </arcgis-expand>
+		  <arcgis-expand id="expand_sketch"  position="bottom-left" mode="floating">
+			<arcgis-sketch    position="bottom-left"></arcgis-sketch>
+		  </arcgis-expand>
+		  <arcgis-expand id="expand_print"   position="bottom-left" mode="floating">
+			<arcgis-print></arcgis-print> <!-- 'arcgis-print' generates 'undefined' error in Console.log -->
+		  </arcgis-expand>				  
+		  
+		  <!-- Map bottom-right -->
+		  
+		 </arcgis-map>
+		 		 
+	</div>
+	
+	
+
+</div>
+
+<div id="footer">
+
+	<div class="tab">
+	  <button class="tablinks" id="tablink_Basemaps"	>Basemaps</button>
+	  <button class="tablinks" id="tablink_Legend"		>Legend</button>
+	  <button class="tablinks" id="tablink_Tables"	disabled	>Tables</button>
+	  <button class="tablinks display_none" id="tablink_Enlarge"	title="Enlarge"	>&#8657; </button>
+	  <button class="tablinks display_none" id="tablink_Shrink"		title="Shrink"	>&#10585;</button>
+	  <button class="tablinks display_none" id="tablink_Collapse"	title="Collapse">&#8659;</button>
+	</div>
+	
+	
+	<div class="tabcontent display_none" id="tab_Basemaps"	>
+		<arcgis-basemap-gallery reference-element="map_main" auto-destroy-disabled></arcgis-basemap-gallery>	  
+	</div>
+	<div class="tabcontent display_none" id="tab_Legend"	>
+		<arcgis-legend id="legend" reference-element="map_main" auto-destroy-disabled></arcgis-legend>
+	</div>
+	<div class="tabcontent display_none" id="tab_Tables"	>
+		<arcgis-feature-table id="feature-table" reference-element="map_main" show-layer-dropdown></arcgis-feature-table>
+	</div>
+	
+</div>
+</div> <!-- end pageDiv --> 
+
+
+<script type="module">
+
+// Globals:
+var mapView = document.querySelector("arcgis-map")
+var our_service = "InfraView"
+
+var visible_layers = [] 
+var all_layers = []
+var active_filters = []
+
+
+var popup_defaultDisabled = [902, 903, 907, 908, 906, 904] // all popups enabled by default; disable some of our 'reference layers'
+var signOn = false; // (default is a Public View)
+
+var footer_state = 'collapse'
+var footer_activeTab = null
+
+const reactiveUtils = await $arcgis.import("@arcgis/core/core/reactiveUtils.js");
+const Collection = await $arcgis.import("@arcgis/core/core/Collection.js");
+
+
+function getCookie(cname) {
+  let name = cname + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(';');
+  for(let i = 0; i <ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+
+document.addEventListener('DOMContentLoaded', async function() {
+
+
+// DOM/LAYOUT FUNCTION DEFINITIONS //
+let root = document.documentElement;
+
+function layout_config(){
+	//sidebar within #content; sidebar is two different divs; content_main adjusts width;
+	function sidebar_collapse(){
+		root.style.setProperty('--sidebar_width',  '30px');
+		document.getElementById("content_leftSidebar_open").classList.add("display_none");
+		document.getElementById("content_leftSidebar_closed").classList.remove("display_none");
+	}
+	function sidebar_expand(){
+		root.style.setProperty('--sidebar_width',  '360px');
+		document.getElementById("content_leftSidebar_open").classList.remove("display_none");
+		document.getElementById("content_leftSidebar_closed").classList.add("display_none");
+	}
+
+	// open and close footer; also 'expand' and 'shrink' (full-page/half-page)
+	function footer_handler(new_state){
+		//define all layout responses to footer states (functions)
+		function footer_expand(){
+			// footer size
+			root.style.setProperty('--footer_height',  '350px');
+			document.getElementById("footer").classList.remove("footer_enlarged");
+			document.getElementById("content").classList.remove("content_footer_enlarged");
+
+			// 	button options	
+			document.getElementById("tablink_Shrink").classList.add("display_none");
+			document.getElementById("tablink_Collapse").classList.remove("display_none");
+			document.getElementById("tablink_Enlarge").classList.remove("display_none");
+			
+			// tab_selector
+			var i, tabcontent, tablinks;
+			tabcontent = document.getElementsByClassName("tabcontent");
+			for (i = 0; i < tabcontent.length; i++) {
+				tabcontent[i].classList.add("tab_height_normal")
+				tabcontent[i].classList.remove("tab_height_enlarge")
+			}
+		}
+		function footer_collapse(){
+			// footer size
+			document.getElementById("footer").classList.remove("footer_enlarged");
+			document.getElementById("content").classList.remove("content_footer_enlarged")
+			root.style.setProperty('--footer_height', '40px');
+
+			// button options
+			document.getElementById("tablink_Shrink").classList.add("display_none");
+			document.getElementById("tablink_Collapse").classList.add("display_none");
+			document.getElementById("tablink_Enlarge").classList.add("display_none");
+		}		
+		function footer_enlarge(){
+			// footer size (handled by class, not cssVar)
+			document.getElementById("footer").classList.add("footer_enlarged");
+			document.getElementById("content").classList.add("content_footer_enlarged")
+
+			// button options
+			document.getElementById("tablink_Enlarge").classList.add("display_none");
+			document.getElementById("tablink_Shrink").classList.remove("display_none");				
+		}
+		
+		// update the footer_state, then apply layout changes.
+		footer_state = new_state
+		if (new_state === 'enlarge'){
+			footer_enlarge()
+			return
+		}
+		if (new_state === 'expand'){
+			footer_expand()
+			return
+		}
+
+		footer_collapse()
+	} // end footer_handler
+
+	function openTab(evt, tabName) {
+     	// gets and sets the 'active_tab'; passed click event and tabName 
+		// adapted from W3 tab-nav standard; used for Footer/tabs menus
+		var i, tabcontent, tablinks;
+		tabcontent = document.getElementsByClassName("tabcontent");
+
+		for (i = 0; i < tabcontent.length; i++) { // hide all tab_contents
+			tabcontent[i].classList.add("display_none");
+		}
+	  
+		tablinks = document.getElementsByClassName("tablinks");
+		for (i = 0; i < tablinks.length; i++){ // 'not-active' all tab-btn-links.
+			tablinks[i].className = tablinks[i].className.replace(" active", "");
+		}
+		  
+		if (tabName){	// highlight the 'active' tab (and its tab_content);
+			document.getElementById(tabName).classList.remove("display_none");
+			evt.currentTarget.className += " active";
+			footer_activeTab = tabName;
+		} else {footer_activeTab = null}
+	}	
+
+	// .addEventListeners for layout elements.
+	function define_layout_events(){
+		// Sidebar Toggle Events
+		document.getElementById("sidebar_collapse_btn").addEventListener("click", 	function() {	sidebar_collapse()		})
+		document.getElementById("sidebar_expand_btn").addEventListener('click', 	function() {	sidebar_expand()		})
+
+		// Footbar Toggler 'click' Events
+		var tablinks = document.getElementsByClassName("tablinks");
+		for (var i = 0; i < tablinks.length; i++) {
+			tablinks[i].addEventListener("click", function() {  //adds click handler to every tab.
+			
+				console.log("Footer Tab Click Event...");
+				
+				var source = event.target.id
+				var target = source.replace('link', ''); //bit rough: uses the 'tabLink_Name' to get 'Name' of target tab_content
+				
+				
+				if (target === footer_activeTab){
+					console.log('Footer Click Event: Same tab, do nothing.')
+					footer_handler('collapse'); openTab(event, null)
+				} else {
+					console.log('... changing active tab to ', target);
+					if (source != "tablink_Collapse" && source != "tablink_Enlarge" && source != "tablink_Shrink"){
+					
+						openTab(event, target) 
+						if (footer_state === "collapse"){footer_handler('expand')}
+						
+					} else {
+						if (source === "tablink_Collapse"){footer_handler('collapse'); openTab(event, null)}
+						if (source === "tablink_Shrink"){footer_handler('expand')}
+						if (source === "tablink_Enlarge"){footer_handler('enlarge')}
+					}
+				
+				}
+			})
+		}
+		
+		// header-menu dropdown (used for "Bookmarkd Views")
+		document.getElementById("header_menu_btn").addEventListener("click", function() {
+			document.getElementById("header_menu_content").classList.toggle("display_none");
+		})
+		document.addEventListener("click", function(evt){  // general: if not a click to open header menu, close header menu.
+			var header_menu = document.getElementById("header_menu_content")
+			var header_btn  = document.getElementById("header_menu_btn")
+			if (evt.target != header_menu && evt.target != header_btn){
+				header_menu.classList.add('display_none')
+			}
+		})
+		 // list of 'header menu items' and their action:
+		for (let hdr_item of header_menu_content.children){
+			hdr_item.addEventListener("click", function(evt){  // event for each header_menu_item.
+				load_map_bookmark(evt.target.id)
+			})
+		}
+		
+		// Public/Staff View header button:
+		document.getElementById("signOnBtn_Staff").addEventListener("click", async function evt_handle(evt) {
+
+			// try adding secured services (expect Portal sign-in popup default);
+			const MapImageLayer = await $arcgis.import("@arcgis/core/layers/MapImageLayer.js");
+			const PortalItem = await $arcgis.import("@arcgis/core/portal/PortalItem.js");
+			//let secure_service = new MapImageLayer({
+			//	url: "https://crgis.cedar-rapids.org/arcgisserver/rest/services/InfraView/Infrastructure_Viewer_Secured_Services/MapServer"
+			//});
+			
+			let secure_service = new MapImageLayer({
+			
+				portalItem: {
+          			// autocasts as new PortalItem()
+          			id: "43cba9fae863448db12dae2bbf19c23f",
+        		},
+
+			});
+
+
+			await mapView.map.add(secure_service)
+			
+			// if map layer is added successfully: '' signed in ''
+			mapView.whenLayerView(secure_service)
+				.then((layerView) => {
+					console.log('layerview fired; user authenticated' ) 
+					document.getElementById("signOnBtn_Public").classList.remove("signOn_active")
+					document.getElementById("header_signOn").classList.add("header_signOn_success")
+					document.getElementById("signOnBtn_Staff").classList.add("signOn_active")
+					document.getElementById("signOnBtn_Staff").classList.remove("header_signOn_hover")
+					document.getElementById("signOnBtn_Staff").removeEventListener("click", evt_handle);
+				
+				})
+				.catch(error => { 
+					console.log('err adding secure svc / sign in failed')  
+				})
+			
+		})
+		
+		// For narrow views/mobile: remove title text.
+		function chk_narrowView(){
+			const viewportWidth = window.innerWidth;
+			if (viewportWidth < 680){
+				document.getElementById("header_title").classList.add("header_title_narrow");
+				document.getElementById("header_title_text").classList.add("display_none");
+			} else {
+				document.getElementById("header_title").classList.remove("header_title_narrow");
+				document.getElementById("header_title_text").classList.remove("display_none");				
+			}
+		}
+		chk_narrowView();
+		
+		window.addEventListener('resize', () => {
+			chk_narrowView()
+		});
+		
+		
+		// Splash Screen Close & Next;
+		var splash = document.getElementById("splash");
+		
+		function close_splash(){
+			splash.classList.add("display_none");
+			
+			// check for the splash 'do not again' checkbox 
+			var splash_doNotShowAgain = document.getElementById("splash_doNotShowAgain")
+			console.log(splash_doNotShowAgain)
+			if (splash_doNotShowAgain.checked){
+				document.cookie = "tutorial=false";
+			} 
+
+		}
+		
+		// check if a donotShowagain (tutorial) cookie exists:
+		var splash_init = getCookie("tutorial");
+		console.log("splashCookie", splash_init);
+		if (splash_init != "" && splash_init == 'false'){
+			document.getElementById("splash_doNotShowAgain").checked = true;
+			close_splash();
+			
+		}
+		
+		
+		
+
+		var splash_content = document.getElementById("splash_content")
+		var splash_close_btn = document.getElementById("splash_close_btn")
+		splash_close_btn.addEventListener("click", function (){
+			close_splash();
+		})
+		
+		var splash_count = 0;
+		var splash_next_btn = document.getElementById("splash_next_btn")
+		splash_next_btn.addEventListener("click", function next_splash(){
+			splash_count += 1
+			console.log("Splash Page: ", splash_count);
+			if (splash_count == 1){
+				splash_content.innerHTML = ''+
+						'<img src="loader_map_icon.png" style="width:65px;height:65px;float:right">'+
+						'The Layer List (on the left) controls the data drawn in the map.  With over 100 map layers available, '+
+						'you may need to wait for the map to update fully (watch the loading icon, top-right of the map). '+
+						'<br><br>Change the Basemap or review visible map symbols with the Basemaps and Legend tab below;'+
+						' use the Tables tab to get more detailed data from each map layer!'
+
+			}
+			if (splash_count == 2) {
+				splash_content.innerHTML = ''+
+						'<div style="text-align:left";>In addition to the Basemaps and Tables, several tool widgets are embedded in the map:'+
+						'<div style="height:8px; width:100%"></div>'+
+						'<li>Search: based on Address Locator services,</li>'+ 
+						'<li>Measure & Coordinates: for spatial reference,</li>'+
+						'<li>Draw & Print: for quick markup and sharing,</li></div>'+
+						'<div style="height:8px; width:100%"></div>There are also several bookmarked map views to access our most popular datasets.'
+			}
+			if (splash_count == 3) {
+				splash_content.innerHTML = ''+
+						'<br>This map tool was developed by the GIS Team of the Division of Information Technology at the City of Cedar Rapids.'+
+						'  We value your feedback!  If you have any trouble with the map or map data, or if you have a suggestion on ways'+
+						' we could improve this tool, please reach out to<br><a href="mailto:IT-GIS@cedar-rapids.org">IT-GIS@cedar-rapids.org</a>.'
+				
+				splash_next_btn.innerHTML = "Finish"
+			}
+			if (splash_count == 4) {
+				close_splash()
+			}
+		})
+		
+		
+		// About/Information Expand:
+		document.getElementById("expand_about_icon").addEventListener("click", function about(){
+			// should show an about modal; interim: reset splash:
+			console.log('about press');
+			splash_count = 0;
+			var restore = '' +
+				'If you are new to this application, the next few slides will help familiarize you with the layout of this application and some of the basic map tools.'+
+				'<br><br>If you were looking for our older, legacy Infrastructure Viewer, <a href="https://crgis.cedar-rapids.org/IV/index.html">please click here</a>.'+
+				'If you have comments or requests for this application, please <a href="https://survey123.arcgis.com/share/9d13577027034d9cb9cf3eb7d0cd7c6b">'+
+				'complete the provided Survey, here</a>.<br><hr>'
+			splash_content.innerHTML = restore;
+			splash.classList.remove("display_none");
+		})
+		
+
+	}
+	
+	define_layout_events()
+}
+layout_config()
+console.log('Defined layout functions and events');
+
+// MAPVIEW INITIALIZATION 
+async function map_config(){
+	// set Portal to organization.
+	async function load_esriConfig(){
+		const esriConfig = await $arcgis.import("@arcgis/core/config.js");
+		esriConfig.portalUrl = "https://crgis.cedar-rapids.org/arcgisportal/";
+		console.log("... configured Portal Server.");
+	}	
+	// set Map to Portal Item (center & zoom)
+	async function map_init(){
+		var webmap_id   = "1c82087191d7448ba521adf7c620826e"
+		mapView.itemId = webmap_id;
+		mapView.center = [-91.65074851467115, 41.976330102403125]
+		mapView.zoom = 2
+	}
+	
+	// LayerList: adds buttons and defines actions for LayerList.  Also, chance to review Layers available to Client.
+	async function load_widget_LayerList(){	
+	
+		// LayerList Settings...
+		const LayerList = document.querySelector("arcgis-layer-list");
+		LayerList.visibilityAppearance="checkbox"
+		LayerList.dragEnabled = true;
+	
+		// Esri Imports
+		const [ActionButton, Collection, Slider, reactiveUtils] = 
+			await $arcgis.import(["@arcgis/core/support/actions/ActionButton.js","@arcgis/core/core/Collection.js", "@arcgis/core/widgets/Slider.js", "@arcgis/core/core/reactiveUtils.js"]);
+
+		// function executes as ListItems are added to LayerList; defines events and action
+		// used to generate 'Collections' of 'our Service' and other Layer-By-Layer ops.
+		LayerList.listItemCreatedFunction = (event) => {
+				var  lyrList_item  = {}
+				lyrList_item = event.item
+				
+				if (popup_defaultDisabled.includes(lyrList_item.layer.id)){ // set at Global. 'turns off popups for LayerIds'
+					lyrList_item.layer.popupEnabled = false;
+				} 
+				
+				// add a Listener for Layer-By-Layer Visibility!
+				reactiveUtils.watch(   () => lyrList_item.visible,	(result) => {
+					console.log('Reactive to item.visible in LayerList')
+					async function reactive_visibility(){						// async and call: needed to review layers.visibility
+						visible_layers = await set_sublayer_IsReallyVisible()  // updates our collection of visible layers.
+						update_selectors(visible_layers);
+					}
+					reactive_visibility()
+				});
+
+				// Action Buttons for all Layers (only their 'layout' and 'id')
+				var LayerList_infoButton = new ActionButton({
+					title:"Layer Information",
+					icon: "information",
+					id:   "information"
+				})
+				var LayerList_filterButton = new ActionButton({
+					title:"Filter Layer",
+					icon: "filter",
+					id:   "filter"
+				})
+				
+				var LayerList_tableButton = new ActionButton({
+					title:"View in Table",
+					icon: "table",
+					id:   "table",
+				})
+				if (lyrList_item.layer.popupEnabled){ // toggle button enable/disable popup
+					var LayerList_popupButton = new ActionButton({
+						title:"Disable Info Popup",
+						icon: "content-none",
+						id:   "popup"
+					})
+				} else {
+					var LayerList_popupButton = new ActionButton({
+						title:"Enable Info Popup",
+						icon: "popup",
+						id:   "popup"
+					})
+				}
+				
+				// if/else:: different buttons show for different level layers (i.e., no 'table/popup' buttons for 'Group Layers')
+				var lyrList_url = lyrList_item.layer.url
+				if ((lyrList_item.layer.url && lyrList_item.layer.url.includes("Infrastructure_Viewer")) &&   // is our service
+					(!lyrList_item.children.length > 0 && lyrList_item.parent)){  // and selection for 'individual' layer (no child).
+					
+					// Slider 'Panel' for layer.opacity (transparency)
+					const slider = new Slider({
+						min:0, max:1, precision:2, values: [1],
+						visibleElements: {labels:true, rangeLabels:true},
+					});
+					lyrList_item.panel = {
+						content: slider,
+						icon: "sliders-horizontal",
+						title: "Layer Transparency"
+					}
+					reactiveUtils.watch(
+					  () => slider.values.map((value) => value),
+					  (values) => {lyrList_item.layer.opacity = values[0]
+					}); // end Slider
+					
+					// Action buttons: (if .fields=TRUE && .fields.length >0; else, cannot Filter.)
+					
+					lyrList_item.actionsSections = new Collection([
+						new Collection([
+							LayerList_infoButton, LayerList_filterButton, LayerList_tableButton, LayerList_popupButton
+						]),
+					]);
+
+				} else {
+					// all other layers, Action Buttons:
+					lyrList_item.actionsSections = new Collection([
+						new Collection([
+							LayerList_infoButton,
+						]),
+					]);
+				}
+		} // end 'ItemCreatedFunction'; (all Layer List buttons defined.)
+		
+		// Event listener that fires each time a LayerList ActionButton is triggered
+		LayerList.addEventListener("arcgisTriggerAction", (event) => {
+			// Get a reference to the action id.
+				const id = event.detail.action.id;
+				const url = event.detail.item.layer.url;
+				const lyr = event.detail.item.layer
+
+			if (id === "information"){
+				window.open(url);
+			}
+			if (id === "filter"){
+				filter_modal(lyr);
+			}
+			if (id === "popup"){
+				if (event.detail.item.layer.popupEnabled){
+					// popup was enabled: disable popup and set button to 'enable'
+					event.detail.action.title = "Enable Info Popup";
+					event.detail.action.icon = "popup";
+					event.detail.item.layer.popupEnabled = false;
+				} else {
+					// popup was disabled: enable.
+					event.detail.action.title = "Disable Info Popup";
+					event.detail.action.icon = "content-none";
+					event.detail.item.layer.popupEnabled = true;
+				}
+			}
+			if (id === "table"){
+				async function view_inTable(){
+					if (footer_activeTab !== "tab_Tables"){ // be sure the Tables tab is open.
+						await document.getElementById("tablink_Tables").click();
+					}
+					var table = await document.querySelector("arcgis-feature-table")
+					var tbl_layer = event.detail.item.layer;
+
+					async function set_lyr(){
+						table.layer = tbl_layer;		
+					}
+					setTimeout(set_lyr, 50);	// delay prevents lockup of the arcgis-feature-table component.
+				}
+				view_inTable();
+			}
+			
+		});
+		console.log("... configured LayerList Actions.")
+	}
+
+	// feature-table options and config: i.e., custom 'Export_Table', 'Select All'
+	async function load_widget_FeatureTable(){
+		var table = document.querySelector("arcgis-feature-table");
+		
+		table.menuConfig = {
+			items: [
+				{ // "Export Table" Menu Item
+					label:"Export table", icon: "download", clickFunction: () => {
+						var old_highlights = JSON.parse(JSON.stringify(table.highlightIds)) 	// save current selection
+						table.layer.queryObjectIds().then(function(results){					// query all features
+							table.highlightIds = results
+							table.exportSelectionToCSV().then(function(){					// export to CSV,
+								if (old_highlights && old_highlights.length){
+									table.highlightIds = old_highlights						// restore orig selection
+								} else {
+									table.highlightIds = []									// or remove all selection
+								}
+							});
+						})	
+					}
+				},
+				{ // "Select All" Menu Item
+					label: "Select all", icon: "selection", clickFunction: () => {
+						table.layer.queryObjectIds().then(function(results){					// query all features
+							table.highlightIds = results										// set selection
+						})	
+					} 
+				}
+			]
+		} // end Table menuConfig
+		console.log("... configured Feature Table menu.");
+	}		
+
+	await load_esriConfig()
+	await map_init()
+	load_widget_LayerList()
+	load_widget_FeatureTable()
+}
+map_config()
+console.log('MapView initialized');
+
+// MAP LAYERS INITIALIZATION
+   //waits for mapView.
+mapView.addEventListener('arcgisViewReadyChange', (event) => {
+	console.log('MapView Exists.')
+	
+	async function initialize_layers(){
+		// initialize our sublayer_IsReallyVisible, remove 'Sketch Layer'
+		visible_layers = await set_sublayer_IsReallyVisible()
+		console.log('Visible Layers:', visible_layers)
+		  
+		// Sketch Layer only needed if we 'actually use' draw...
+		var SketchLyr = mapView.map.layers.find(layer => layer.title === "Sketch Layer")
+		SketchLyr.listMode = "hide";	
+
+		// update table and other layer selectors with 'visible_layers'
+		update_selectors(visible_layers)
+
+	} // end initialize_layers
+	console.log(' ... .updating:', mapView.updating);
+	reactiveUtils.once(
+		() => mapView.updating)
+		.then(() => {
+			console.log(' ... .updating:', mapView.updating);
+			console.log("Initializing Layers...");
+			// when !updating; run initialize_layers();
+			initialize_layers();					
+
+		// check URL params for a bookmark;
+		const url_params = window.location.search
+		const params     = new URLSearchParams(url_params);
+		if (params.get("bookmark")){
+			load_map_bookmark(params.get("bookmark"));
+			console.log("... reading Bookmark View from URL parameter");
+		}	
+
+		document.getElementById("tablink_Tables").disabled = false
+		document.getElementById("loader_init").classList.add("display_none");
+
+
+	}) // end reactive: mapView.updating.	
+	
+
+
+	// loader_map: display 'loader' anytime LayerView.updating True.
+	reactiveUtils.watch(
+		() => mapView.layerViews.map( layer => layer.updating),
+		(layers_updating) => {
+			const result = layers_updating.every(value => !value);
+			if (result){
+				document.getElementById('loader_map').classList.add("display_none");
+			} else {
+				document.getElementById('loader_map').classList.remove("display_none");
+			}
+		});
+		
+		
+		
+}) // end mapView listener.
+
+
+
+// GLOBAL FUNCTIONS (Call me anytime, from anywhere...)
+
+ // track sublayers' (inherited) visibility 
+ // .visible =/= 'visible in map', add .IsReallyVisible
+async function set_sublayer_IsReallyVisible(){
+	var ReallyVisible_Layers = []
+
+	var map_lyr_collection = mapView.map.allLayers
+	map_lyr_collection.forEach(async function(item, i){ 		
+		if (item.url){															// has URL we can check
+			if ( (item.url).includes(our_service) ){  							// check that it includes 'our_service' string.
+				item.IsReallyVisible = item.visible   								// parent inherits IsReallyVisible from itself.
+				if (item.sublayers){ 												// handle "Sublayers"
+
+					  // walk the tree; pass visibility 'down' from parent to child (use custom IsReallyVisible property)
+					  //recursive: we know this item has sublayer; we'll check each sublayer for more children until none;
+
+					async function sublayer_recursion_IsReallyVisible(sublayer_collection){
+							
+							sublayer_collection.forEach(function(sublyr){
+								if (sublyr.parent.IsReallyVisible && sublyr.visible){	
+									sublyr.IsReallyVisible = true; 
+									
+								} else {
+									sublyr.IsReallyVisible = false;
+								}
+								
+								if (sublyr.sublayers){ 			// check 'em too:
+									sublayer_recursion_IsReallyVisible(sublyr.sublayers)
+								} 
+								
+								if (sublyr.IsReallyVisible && !sublyr.sublayers){
+									// visible && 'bottom level layer' (features & attributes)
+									// pass to array for return
+									ReallyVisible_Layers.push(sublyr);
+								}
+							})
+					}
+					
+					await sublayer_recursion_IsReallyVisible(item.sublayers)
+					
+				}	
+			}  // end if url = 'our service'
+		}  // end if url:true
+	}); //end mapView.layers.forEach
+	return ReallyVisible_Layers;
+}
+
+// Updates Feature-Table 'dropdown layer selector' and similar with only those layers that are now visible;
+function update_selectors(in_layers){
+	var table = document.querySelector('arcgis-feature-table')
+	
+	var cur_table_layer = table.layer	// temp: cur selected table layer
+	table.layers = in_layers			// update table layers
+	table.layer = cur_table_layer;
+}
+
+// Filter Module:
+async function filter_modal(from_layer){
+  // Three Functions (all need global): 
+		// filter_modal() to call the modal and define all elements, actions, events.
+		// apply_filters() reviews 'active_filters' and applies them.
+		// disable_filters() removes the 'definition_expression' from all layers.
+
+	async function apply_filters(){
+		console.log("Iterating over "+active_filters.length+" active filters.")
+		active_filters.forEach(function(filter) {
+			if (filter != null){
+				var def_expr = ''
+				
+				var field = filter.field_selector_element.value.split(",")[1]
+				var field_type = filter.field_selector_element.value.split(",")[2]
+				var value = filter.value_selector.value
+				if (field_type == 'string'){value = "'" + value + "'"}
+				
+				
+				var operator = filter.comparators.value.split(",")[1]
+				if (operator === "is not"){operator = " <> "}
+				if (operator === "is")    {operator = " = "}
+				def_expr = `${field} ${operator} ${value}`		// basic construction
+				
+				
+				if (operator === "is any of") {  // is any of multiple in list.
+					var join_str;
+					
+					if (field_type == "string"){
+						operator = " IN ('";
+						join_str = "','";
+					} else {
+						operator = " IN (";
+						join_str = ",";
+					}
+					
+					var values = Array.from(filter.value_selector.selectedOptions).map(option => option.value);
+					if (values.length < 1){def_expr = null} // no values selected.
+					if (values.length == 1){} 				// do nothing, use basic construction.
+					if (values.length > 1){
+						value = values.join(join_str)
+						def_expr = `${field} ${operator}${value}`		
+						if (field_type == "string"){
+							def_expr += "')"
+						} else { def_expr += ")" }
+					}
+				}
+				
+				
+				console.log(def_expr);
+				filter.definitionExpression = def_expr;
+				
+				document.getElementById("active_filters_btn").classList.remove("display_none");
+				
+				console.log(filter)
+			}
+		})
+	}
+	async function disable_filters(){
+		//removes all DefinitionExpressions, all layers...
+		console.log("removing filters");
+		active_filters.forEach(function(filter) {
+			if (filter != null){
+				filter.definitionExpression = null
+			}
+		})
+		document.getElementById("active_filters_btn").classList.add("display_none");
+
+	}
+
+	// Still in Filter_modal()
+	// Now we check if the 'from_layer' is 'filterable', and whether a 'filter' already exists 
+	
+	// DOM element references.
+	var filter_window = document.getElementById("filter-modal");
+	var filter = document.getElementById("filter-container")
+
+
+	// first check for filterable .fields:
+	var filterable = false;
+	if (from_layer.fields && from_layer.fields.length > 0){
+		from_layer.fields.forEach( function(field) {
+			if (!['OBJECTID', 'objectid', 'shape', 'SHAPE', 'Shape'].includes(field.name)){
+					filterable = true; // if just one 'value' field, we'll create a filter.
+ 			}
+		})
+	}		
+	
+	if (!filterable){
+		// caught an exception; should display a representation of a 'unfiltered layer' in filter_modal.
+		// usually .fields just isn't ready?  need a reactive/watch.
+	} else {	
+	
+		var i = -1
+		
+		// tracking filters:
+		if (!active_filters.includes(from_layer)){ // if not active, create;
+			active_filters.push(from_layer)
+			i = active_filters.indexOf(from_layer);
+			active_filters.index = i;
+			console.log('adding new filter, index ' + i);
+				
+			// creating 
+			active_filters[i].title = from_layer.title
+		
+			active_filters[i].field_selector = document.createElement('select');
+			active_filters[i].field_selector.id = "filter_fieldlist_" + i.toString()
+			
+			active_filters[i].value_selector = document.createElement('select');
+			active_filters[i].value_selector.id = "filter_valuelist_" + i.toString()
+			active_filters[i].value_selector.style.width = "220px"
+			
+			// field selector options:
+			active_filters[i].field_options = ''
+			console.log('field check: ', from_layer);
+			from_layer.fields.forEach( function(field) {
+				if (!['OBJECTID', 'objectid', 'shape', 'SHAPE', 'Shape'].includes(field.name)){
+					active_filters[i].field_options += '<option value="'+i+',' + field.name + ','+field.type+'">'+field.alias+'</option>'
+				}
+			})
+			active_filters[i].field_selector.insertAdjacentHTML("beforeend", active_filters[i].field_options)
+			
+			// standard comparators options
+			var comparators = ['is', 'is not', 'is any of'];
+			var std_comp = ''
+			active_filters[i].comparators = document.createElement('select');
+			active_filters[i].comparators.id = "filter_comparator_" + i.toString();
+			comparators.forEach( function(val) {
+				std_comp += '<option value="'+i+','+val+'">'+val+'</option>'
+			})
+			active_filters[i].comparators.insertAdjacentHTML("beforeend", std_comp)
+						
+			var top_content = "<div id='filter_layer_item" +i+"' class='filter_layerItem'>"+active_filters[i].title
+			top_content += "<div class='filter_remove_btn' id='remove_filter_"+i+"'>X</div>"
+			top_content += "<br></div>"
+			filter.insertAdjacentHTML("beforeend", top_content)
+			var filter_item = document.getElementById("filter_layer_item"+i)
+			  filter_item.appendChild(active_filters[i].field_selector);
+			  filter_item.appendChild(active_filters[i].comparators);
+			  filter_item.insertAdjacentHTML("beforeend", "<br>");
+			  filter_item.appendChild(active_filters[i].value_selector)
+			  
+			// listener for 'remove' button event;
+			active_filters[i].removeButton = document.getElementById('remove_filter_'+i)
+			active_filters[i].removeButton.value = i;
+			active_filters[i].removeButton.addEventListener("click", async function(e) {
+				var index = e.target.value
+				// delete entire dom element 'filter_layer_item + i'
+				var target_filter = "filter_layer_item" + index.toString()
+				var target_element = document.getElementById(target_filter).remove()
+				
+				// null any definitionExpression;
+				active_filters[i].definitionExpression = null
+				
+				// nullify in filter array;
+				active_filters[i] = null
+				console.log('Removed '+target_filter)
+				
+				var filtering = false;
+				active_filters.forEach(function(filter){
+					if (filter != null){
+						filtering = true;
+					}
+				})
+				if (!filtering){
+					filter_window.classList.add("display_none")
+					document.getElementById("active_filters_btn").classList.add("display_none");
+				};
+			})
+			  
+			// listen for change in comparison selector; update 'multiple'	
+			active_filters[i].comparators_element = document.getElementById(active_filters[i].comparators.id);
+			active_filters[i].comparators_element.addEventListener("change", async function(e) {
+				const index = e.target.value.split(",")[0]
+				const operator = e.target.value.split(",")[1]
+				var val_selector = document.getElementById(active_filters[index].value_selector.id)
+			
+				if (operator === "is any of"){
+					val_selector.multiple = true;
+				} else {
+					val_selector.multiple = false;
+				}
+			
+			})
+			
+			// listen for changes in field selectors; update the values selector.
+			active_filters[i].field_selector_element = document.getElementById(active_filters[i].field_selector.id);
+			active_filters[i].field_selector_element.addEventListener("change", async function(e) {
+				const index = e.target.value.split(",")[0]
+				const layer = active_filters[index]
+				const field = e.target.value.split(",")[1]
+
+				var val_selector = document.getElementById(active_filters[index].value_selector.id)
+				val_selector.disabled = true	
+
+				
+				// query for uniqueValues...
+				const Query = await $arcgis.import("@arcgis/core/rest/support/Query.js");
+				const curQuery = new Query();
+				curQuery.where = "1=1";
+				curQuery.returnDistinctValues = true;
+				curQuery.outFields = [field]
+				curQuery.returnGeometry = false;
+				
+				var uniq = []
+				console.log("Getting unique values from layer/field..")
+			
+				layer.queryFeatures(curQuery).then((result) => {
+					const uniqueValues = result.features.map(feature =>
+						feature.attributes[field])
+					uniq = uniqueValues
+
+					// update values_selector for the given layer:
+					val_selector.options.length = 0;
+					var val_list = []
+					uniq.forEach( function(val) {
+						val_list += '<option value="'+val+'">'+val+'</option>'
+					})
+					val_selector.insertAdjacentHTML("beforeend", val_list)
+					val_selector.disabled = false;
+				})
+			}) // end changeEvent in (field) selector
+			
+			// dispatch changeEvent to initialize values_selector;
+			active_filters[i].field_selector_element.dispatchEvent(new Event('change'))
+		} else {
+			i = active_filters.indexOf(from_layer);
+			console.log('active filter, index ' + i);
+		}
+
+		
+		// close button and other one-time setups: (check if the event was attached to close button);
+		var filter_close_btn = document.getElementById("filter_close_btn")
+		if (filter_close_btn.getAttribute('listener') !== 'true') {
+			filter_close_btn.addEventListener('click', function (e) {
+				filter_window.classList.add("display_none");
+			})
+			filter_close_btn.setAttribute('listener', 'true');
+
+			var apply_filters_btn = document.getElementById("apply_filters_btn")
+			var disable_filters_btn = document.getElementById("disable_filters_btn")
+			apply_filters_btn.addEventListener('click', function (e) {
+				apply_filters()
+			})
+			disable_filters_btn.addEventListener('click', function (e) {
+				disable_filters()
+			})
+			
+			var active_filters_btn = document.getElementById("active_filters_btn")
+			active_filters_btn.addEventListener('click', function (e) {
+				var filter_window = document.getElementById("filter-modal");
+				var filter = document.getElementById("filter-container")
+				filter_window.classList.remove("display_none");
+			});
+
+		}
+	} // end filterable if/else	
+		
+		// close button and other one-time setups: (check if the event was attached to close button);
+		var filter_close_btn = document.getElementById("filter_close_btn")
+		if (filter_close_btn.getAttribute('listener') !== 'true') {
+			filter_close_btn.addEventListener('click', function (e) {
+				filter_window.classList.add("display_none");
+			})
+			filter_close_btn.setAttribute('listener', 'true');
+
+			var apply_filters_btn = document.getElementById("apply_filters_btn")
+			var disable_filters_btn = document.getElementById("disable_filters_btn")
+			apply_filters_btn.addEventListener('click', function (e) {
+				apply_filters()
+			})
+			disable_filters_btn.addEventListener('click', function (e) {
+				disable_filters()
+			})
+			
+			var active_filters_btn = document.getElementById("active_filters_btn")
+			active_filters_btn.addEventListener('click', function (e) {
+				var filter_window = document.getElementById("filter-modal");
+				var filter = document.getElementById("filter-container")
+				filter_window.classList.remove("display_none");
+			});
+
+		}		
+		
+		// filter setup done; show the modal
+		filter_window.classList.remove("display_none");
+
+	}
+
+// Bookmarked Views
+function load_map_bookmark(bookmark){
+	// bookmark is a list of integers in InfraView Service to enable; 
+	// all external layers disabled.
+	console.log("Loading a bookmarked view");
+	
+	// defining our Bookmarks:
+	var enableLayers = [600, 859, 905, 908, 852, 851]  // default;
+	if (bookmark === "projects"){enableLayers = [600, 859, 905, 908, 852, 851, 999]}
+	if (bookmark === "mowing")  {enableLayers = [897, 898, 861, 863, 864, 865, 905, 908, 999]}
+	if (bookmark === "streets") {enableLayers = [897, 899, 772, 776, 905, 908, 999]}
+	if (bookmark === "snowops") {enableLayers = [897, 900, 727,  24, 721, 724, 905, 908, 999]}
+	
+	if (bookmark === "water")   {enableLayers = [101, 120, 87, 88, 92, 108, 119, 905, 908, 999 ]}
+	if (bookmark === "sanitary"){enableLayers = [101, 5,   6, 7, 9, 10, 11, 12, 905, 908, 999]}
+	if (bookmark === "storm")   {enableLayers = [101, 71, 70, 0, 2, 3, 905, 908, 999]}
+	
+
+	// use layerList items to walk; 'open' lyrList_item.open, 'visible' lyrList_item.layer.visible
+	var lyrList = document.querySelector('arcgis-layer-list');
+	var lyrs = lyrList.operationalItems;
+	
+	//recursive function to check lyrList_item children.
+	async function bookmark_check(in_layer){
+		// if we have children, call the function again.
+		if (in_layer.children){
+			in_layer.children.items.forEach(function(child){
+				bookmark_check(child)
+			})
+		}
+		
+		// children or no, check *this* layer; 
+		if (enableLayers.includes(in_layer.layer.id)){
+			in_layer.layer.visible= true;
+			in_layer.open = true;
+		} else {
+			in_layer.layer.visible= false;
+			in_layer.open = false
+			if (!in_layer.parent){in_layer.layer.visible=true; in_layer.open=true;} //top-level exception.
+		}
+	}
+
+	lyrs.forEach(function(lyr, i){
+		if (lyr.layer.url && lyr.layer.url.includes("InfraView")){ // only bookmark 'local' services.
+			bookmark_check(lyr); // check this layer and all of its children...
+		}
+	})
+	
+	// bookmarks should appear as URL parameters for users to 'share':
+	const url_base = window.location.href.split('?')[0]
+	const param_str = "?bookmark=" + bookmark
+	if (window.history.replaceState){
+		window.history.replaceState({}, null, url_base+param_str)
+	
+	}
+
+}
+
+
+console.log("End DOMContentLoaded Functions")
+	
+		
+		
+
+		
+}); // end DOMContentLoaded
+
+
+
+
+
+
+
+</script>
+
+
+
+</body>
+</html>
+
+
+
+
+
+
