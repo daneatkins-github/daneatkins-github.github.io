@@ -1,0 +1,572 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CoCR Public Snow Plow Map</title>
+
+<!-- ArcGIS Import -->
+<script type="module" 		src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
+<link 	rel="stylesheet" 	href="https://js.arcgis.com/4.33/esri/themes/light/main.css" />
+<script 					src="https://js.arcgis.com/4.33/"></script>
+<script type="module" 		src="https://js.arcgis.com/4.33/map-components/"></script>
+
+
+
+	
+
+    
+<!-- custom styles / page layout -->
+<style>
+/* Variables */
+:root {
+  
+}	
+	
+/* Utility Classes */
+	.hidden {
+		visibility: hidden;
+	}
+	
+	.display_none {
+		display:none !important;
+	}
+	
+	hr {
+	  border: 1px solid #ccc;
+	  margin: 20px 0;
+	}
+
+
+/* Loaders (Loading Progress) */
+	#loader {                
+		position:absolute;
+		height:100%; width:100%;
+		background-color:white;
+		z-index:5999;
+		align-content:center;
+		align-items:center;
+		justify-content:center;
+		font-size:24px;
+	}
+		
+	.loader_spinner {
+
+	  border: 16px solid #f3f3f3;
+	  border-radius: 50%;
+	  border-top: 16px solid #3498db;
+	  margin-left: calc(50% - 60px);
+	  width: 120px;
+	  height: 120px;
+	  -webkit-animation: spin 2s linear infinite; /* Safari */
+	  animation: spin 2s linear infinite;
+	}
+
+	/* Safari */
+	@-webkit-keyframes spin {
+	  0% { -webkit-transform: rotate(0deg); }
+	  100% { -webkit-transform: rotate(360deg); }
+	}
+
+	@keyframes spin {
+	  0% { transform: rotate(0deg); }
+	  100% { transform: rotate(360deg); }
+	}
+
+
+/* Primary Layout */
+
+	*{
+		margin: 	0px;
+		padding: 	0px;
+	}
+	.page_div {
+		position:relative;
+		width:100%;
+		height:100dvh;
+		background-color: gray;
+
+	}
+	
+	/* Header and Children */
+	#header{
+		display:	block;
+		position: 	relative;
+		width: 		100%;
+		height: 	48px;
+		z-index:	900;
+		background-color: green;
+		margin-bottom:2px;
+		
+		
+	}
+	#header > * {
+		vertical-align:middle;
+		line-height:normal;
+	}
+	
+		#header_title {
+			display:		inline-block;
+			position:		relative;
+				left:		15px;
+			padding-right:	20px;
+			
+			line-height:	100%;
+			font-size:		20px;
+			text-align:		center;
+			
+			width:			325px;
+			height:			100%;
+			
+			border-radius:	12px;
+
+			background-color: lightgreen;
+			white-space:	nowrap;
+		}
+			.header_title_narrow {
+				width:		50px !important;
+				padding-right: 0px !important;
+			}
+		
+		#header_title > * {
+			vertical-align:middle; 
+			line-height:normal;
+		}
+		
+			#header_title_img {
+				display:	inline-block;
+				position:	relative;
+				height:		100%;
+			}
+			#header_title_text {
+				display:	inline-block;
+				position:	relative;
+				top:		0px;
+				height:		100%;		
+				align-content:center;
+			}
+
+	
+
+	
+	
+	/* Content; main view */
+	#content {
+		display:	block;
+		position: 	relative;
+		
+		width:		100dvw;
+		overflow: 	hidden;
+
+		white-space: nowrap;
+		height: 	calc(100dvh - 50px);
+	
+	}
+
+		#content_main {
+			position:	relative;
+			display:	inline-block;
+			width:		100%;
+			height:		100%;
+			margin:		0px;
+			background-color:white;			
+		}
+	
+
+			#status_banner {
+				display:	block;
+				position:   relative;
+				width: 		100%;
+				height: 	18%;
+				
+				
+				white-space:wrap;
+				border-top:5px solid black;
+				border-bottom:2px solid black;
+			}
+				#banner_content {
+					width:100%;
+					height:100%;
+					padding: 5px;
+					
+					
+					word-wrap: break-word; /* Deprecated but still widely supported */
+					overflow-wrap: break-word; /* Modern equivalent */
+					word-break: break-word; /* For older browsers */
+					
+				}
+			
+				.banner_off {
+					background-color: lightgrey;
+				}
+				.banner_pre {
+					background-color: lightblue;
+				}
+				.banner_mains {
+					background-color: #ff4500;
+				}
+				.banner_allplow {
+					background-color: #f08080;
+				}
+				
+				#timestamp {
+					position:absolute;
+					bottom:0px; right:0px;
+					font-style: italic;
+					text-align:right;
+					padding-right:15px;
+					font-size:.8em;
+					
+				}
+				
+
+
+			#map_div {
+				position:relative;
+				width:100%;
+				height: 80%;
+			}
+
+			.src_container{
+				position: absolute;
+				top: 0px;
+				left: 50%;
+				transform: translate(-50%);
+				background-color:lightgrey;
+				border:1px solid gray;
+				padding-left:2px;
+				padding-right:2px;
+				font-size:.6em;
+			}
+			
+				.btn_src {
+					display: inline-block;
+					
+					font-size:1em;
+					margin-top:0px;
+					margin-bottom:0px;
+					padding:0px;
+					padding-right:2px;
+					padding-left:2px;
+				}
+				
+					.btn_src_on {
+						text-decoration: underline;
+						font-weight: bold;
+					}
+					
+					.btn_src:hover {
+						color: blue; 
+						cursor:pointer;
+					}
+
+
+				.map {
+					width:100%;
+					height:100%;
+				}
+			
+			
+			
+
+</style>
+</head>
+
+<body>
+
+  
+  
+<div class="page_div">
+ 
+   <div class="loader" id="loader">
+	  <div style="width:100vw;text-align:center;justify-content:center;">Loading the City of Cedar Rapids'<br>Snowplow Tracker!<br>
+	  
+	  <img src="loader_gear.gif" width="240"></img>
+	 </div>
+	 
+  </div>
+ 
+ 
+	<div id="header">
+		<div id="header_title">
+			<img src="CoCR_Tree_Logo.png" id="header_title_img"></img>
+			<span id="header_title_text">Snow Plow Tracker</span>
+		</div>
+	</div>
+
+	<div id="content">
+		<div id="content_main">
+			<div id="status_banner">
+				<div id="banner_content">
+					
+				</div>
+				<div id="timestamp">As of:  </div>
+			</div>
+			<div id="map_div">
+				<iframe id="map" class="map" src="https://crgis.cedar-rapids.org/arcgisportal/apps/experiencebuilder/experience/?id=a550a12d280946ceb18b4aa88267278b">
+				</iframe>
+				<div class="src_container" style="display:none;">
+					Source:
+					<div id="btn_srcHosted"     class="btn_src" onClick="set_srcHosted()"    >Portal</div> 
+					<div id="btn_srcReferenced" class="btn_src btn_src_on"            onClick="set_srcReferenced()">EGDB</div>
+				</div>
+			</div>
+		</div> <!-- content_main -->
+	</div> <!-- content -->
+
+</div> <!-- end pageDiv --> 
+
+
+
+
+
+<script type="module">
+
+
+let appConfig = "https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Snowplow_Public_Map/MapServer/117/query?where=OBJECTID+%3E+-1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&defaultSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&gdbVersion=&historicMoment=&returnDistinctValues=false&returnIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&multipatchOption=xyFootprint&resultOffset=&resultRecordCount=&returnTrueCurves=false&returnCentroid=false&returnEnvelope=false&timeReferenceUnknownClient=false&maxRecordCountFactor=&sqlFormat=none&resultType=&datumTransformation=&lodType=geohash&lod=&lodSR=&cacheHint=false&f=pjson"
+
+let last_serverupdate = "https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Snowplow_Public_Map/MapServer/101/query?where=OBJECTID+%3E+-1&text=&objectIds=&time=&timeRelation=esriTimeRelationOverlaps&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=last_edited_date&returnGeometry=false&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=1&returnExtentOnly=false&sqlFormat=none&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&uniqueIds=&returnUniqueIdsOnly=false&featureEncoding=esriDefault&f=pjson"
+
+let appState = null
+let eventStart = null
+
+let banner_content = ''
+
+// function to get APIs
+function getLayer(api_url){
+	try {
+		var Httpreq = new XMLHttpRequest();
+			Httpreq.open("GET", api_url, false);
+			Httpreq.send(null);
+		return Httpreq.responseText
+		}
+	catch (e) {}
+	return false
+}
+
+// function to check API response is valid
+function tryParseJSONObject (jsonString){
+	try {
+		var o = JSON.parse(jsonString);
+		if (o && typeof o === "object") {
+			return o;
+		}
+	}
+	catch (e) { }
+    return false;
+}; // end tryParse
+
+async function cur_time_str(){
+	// current timestamp:
+	const date = new Date();
+	let hours = date.getHours();
+	const minutes = date.getMinutes().toString().padStart(2, '0');
+	const ampm = hours >= 12 ? 'PM' : 'AM';
+	hours = hours % 12 || 12; // Convert 0 to 12 for midnight
+	const formattedTime = `${hours}:${minutes} ${ampm}`;
+
+return formattedTime
+}
+	
+// call the appConfig API
+async function getAPI(url){
+	var result = false
+	
+	var query_resp = await getLayer(url);              // query api; await
+		if (query_resp) {										 // if truthy response:
+			var parsed = await tryParseJSONObject(query_resp)    // try parsing the JSON response
+				console.log('parse:', parsed)
+				if (parsed){					
+				// if truthy JSON:
+					if (!parsed.error){                          // check the response isn't 'error'
+						result = parsed
+					} else { 
+						result = false; console.log("API Error") 
+					}
+				}
+		} else {
+			result = false
+		}
+		
+	return result
+	
+}
+
+
+
+async function update_banner(){
+	console.log("banner_update...")
+	let banner = document.getElementById('banner_content')
+
+	getAPI(appConfig).then(async (status_result) => {
+	
+		// remove loader:
+		
+	
+		if (status_result){
+
+			// got our appConfig
+			console.log(status_result)
+			
+			// retrieve the 'status':
+			appState   = status_result.features[0].attributes['appState']
+			eventStart = status_result.features[0].attributes['last_edited_date']
+			console.log(eventStart)
+			
+			// duration?
+			var start = new Date(eventStart);
+			let startdate_str = start.toLocaleString()
+			let duration = Date.now() - start 
+			
+				// Convert milliseconds to hours and minutes
+			const duration_hrs = Math.floor(duration / (1000 * 60 * 60));
+			const duration_min = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+			let duration_str = duration_hrs.toString() + ' hours, ' + duration_min.toString().padStart(2, '0') + ' minutes'
+				
+			// current_time?
+
+				// decisions:
+				if (appState == 'Off'){
+					banner_content = ''
+					banner_content += 'There are currently no Snow Plow Operations logged by the City of Cedar Rapids staff. '
+					
+					banner.classList.add("banner_off")
+					banner.innerHTML = banner_content
+					
+				}
+				if (appState == 'Pretreatment'){
+					banner_content = ''
+					banner_content += 'The City of Cedar Rapids is currently pretreating roads with salt and brine.<br>'
+					banner_content += 'This operation has been underway since '+startdate_str+'<br>'
+					banner_content += '(a duration of '+duration_str+')<br>'
+					
+					banner.classList.add("banner_pre")
+					banner.innerHTML = banner_content
+				
+				}
+				if (appState == 'Test_Mode'){
+					banner_content = ''
+					banner_content += 'Staff are currently testing the Snow Plow application.<br>'
+					banner_content += 'Event was started: '+startdate_str+'<br>'
+					banner_content += 'Current duration: '+duration_str+'<br>'
+					
+					banner.classList.add("banner_mains")
+					banner.innerHTML = banner_content
+				
+				}
+				if (appState == 'Mains'){
+					banner_content = ''
+					banner_content += 'City Staff are plowing Main Arterials!<br>'
+					banner_content += 'Staff do not anticipate plowing residential streets for this event!<br>'
+					banner_content += 'Event was started: '+startdate_str+'<br>'
+					banner_content += 'Current duration: '+duration_str+'<br>'
+					
+					banner.classList.add("banner_mains")
+					banner.innerHTML = banner_content
+								
+				}
+				if (appState == 'All_Plow'){
+					banner_content = ''
+					banner_content += 'The City has declared an "All Plow Event": '
+					banner_content += 'during these events, staff will first plow our main routes for public safety!&nbsp;'					
+					banner_content += 'As the snowfall slows, we will begin clearing residential streets!&nbsp;'
+					banner_content += 'It can take several hours from the start of an event to begin residential service; we appreciate your patience.<br>'
+					banner_content += 'Event was started: '+startdate_str+'<br>'
+					banner_content += 'Current duration: '+duration_str+'<br>'
+					
+					banner.classList.add("banner_allplow")
+					banner.innerHTML = banner_content
+				
+				}
+					
+					// a timestamp so users know when the page was updated.
+					let timestamp = document.getElementById('timestamp')
+					let cur_time = await cur_time_str()
+					
+					
+					// last edited date (on server data):
+					const last = await getAPI(last_serverupdate)
+					if (last.features.length > 0){
+						const last_edit = last.features[0].attributes['last_edited_date']
+						var   last_str  = new Date(last_edit);
+						var   last_str  = last_str.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})
+					
+						timestamp.innerHTML = '...map as of ' + cur_time + '<br> last server update was '+last_str
+						
+						document.getElementById("loader").classList.add("display_none");
+					} else	{
+						timestamp.innerHTML = '...map as of ' + cur_time + '<br> last server update is unknown.'
+						
+						document.getElementById("loader").classList.add("display_none");
+						
+					}
+					
+					
+			} else {
+				// failsafe banner:
+				console.log('no app config available; defaulting..')
+			}
+			
+		})
+		.catch((error) => {
+			console.log("Failed to get appConfig from Portal")
+			console.log(error)
+			
+		});
+		
+	return true
+}
+
+async function set_srcHosted(){
+	const iframe = document.getElementById('map');
+		  iframe.src = "https://crgis.cedar-rapids.org/arcgisportal/apps/experiencebuilder/experience/?id=1299ae45d15e45209422a72c48d9e4e6";
+	await update_banner()
+	const btn = document.getElementById('btn_srcHosted').classList.toggle('btn_src_on')
+	const btn2 = document.getElementById('btn_srcReferenced').classList.toggle('btn_src_on')
+	
+}
+async function set_srcReferenced(){
+	const iframe = document.getElementById('map');
+		  iframe.src = "https://crgis.cedar-rapids.org/arcgisportal/apps/experiencebuilder/experience/?id=a550a12d280946ceb18b4aa88267278b";
+	await update_banner()
+	const btn = document.getElementById('btn_srcHosted').classList.toggle('btn_src_on')
+	const btn2 = document.getElementById('btn_srcReferenced').classList.toggle('btn_src_on')
+	
+}
+
+
+
+
+document.addEventListener("DOMContentLoaded", async function() {
+    console.log("DOM is fully loaded and parsed!");
+	
+	update_banner()
+
+
+	// not using..
+	function refresh_data(){
+		console.log("Refresh...")
+		update_banner()
+		
+		document.getElementById('map').src = document.getElementById('map').src  // forces iFrame to refresh the map!
+		
+	}
+	
+
+});
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
