@@ -1,0 +1,832 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CoCR Admin Snow Plow Map</title>
+
+<!-- ArcGIS Import -->
+<script type="module" 		src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
+<link 	rel="stylesheet" 	href="https://js.arcgis.com/4.33/esri/themes/light/main.css" />
+<script 					src="https://js.arcgis.com/4.33/"></script>
+<script type="module" 		src="https://js.arcgis.com/4.33/map-components/"></script>
+
+
+
+	
+
+    
+<!-- custom styles / page layout -->
+<style>
+/* Variables */
+:root {
+
+  
+}	
+	
+/* Utility Classes */
+	.hidden {
+		visibility: hidden;
+	}
+	.display_none {
+		display:none !important;
+	}
+	
+	hr {
+	  border: 1px solid #ccc;
+	  margin: 20px 0;
+	}
+
+/* Modal */
+	#loader {
+		position:absolute;
+		top:0px;
+		left:0px;
+	
+		text-align:center;
+		justify-content:center;
+	
+		width:		100dvw;
+		height:		100dvh;
+		font-size: 	26px;
+		background-color: rgba(255,255,255,0.95);
+		z-index:    901
+	}
+
+	#confirm {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			
+			width:240px;
+			
+			background-color:white;
+			border: 1px solid black;
+			
+	
+	}
+		.confirm_header {
+			width:100%;
+			height:24px;
+			padding-left:10px;
+			background-color:red;
+		}
+		.confirm_btn {
+			padding: 5px;
+		}
+	
+
+
+/* Primary Layout */
+
+	*{
+		margin: 	0px;
+		padding: 	0px;
+	}
+	.page_div {
+		position:relative;
+		width:100%;
+		height:100dvh;
+		background-color: gray;
+
+	}
+	
+	/* Header and Children */
+	#header{
+		display:	block;
+		position: 	relative;
+		width: 		100%;
+		height: 	48px;
+		z-index:	900;
+		background-color: green;
+		margin-bottom:2px;
+		
+		
+	}
+	#header > * {
+		vertical-align:middle;
+		line-height:normal;
+	}
+	
+		#header_title {
+			display:		inline-block;
+			position:		relative;
+				left:		15px;
+			padding-right:	20px;
+			
+			line-height:	100%;
+			font-size:		20px;
+			text-align:		center;
+			
+			width:			325px;
+			height:			100%;
+			
+			border-radius:	12px;
+
+			background-color: lightgreen;
+			white-space:	nowrap;
+		}
+			.header_title_narrow {
+				width:		50px !important;
+				padding-right: 0px !important;
+			}
+		
+		#header_title > * {
+			vertical-align:middle; 
+			line-height:normal;
+		}
+		
+			#header_title_img {
+				display:	inline-block;
+				position:	relative;
+				height:		100%;
+			}
+			#header_title_text {
+				display:	inline-block;
+				position:	relative;
+				top:		0px;
+				height:		100%;		
+				align-content:center;
+			}
+
+	
+
+	
+	
+	/* Content; main view */
+	#content {
+		display:	block;
+		position: 	relative;
+		
+		width:		100dvw;
+		overflow: 	hidden;
+
+		white-space: nowrap;
+		height: 	calc(100dvh - 180px);
+	
+	}
+
+		#content_main {
+			position:	relative;
+			display:	block;
+			width:		100%;
+			height:		100%;
+			margin:		0px;
+			background-color:white;			
+		}
+	
+	
+			#status{
+				position:	relative;
+				display:	block;
+				background-color:lightblue;
+				width:100%;
+				height: 130px;
+			}
+				#status_header {
+					font-size:1.2em;
+
+				}
+				#status_content {
+					
+				}
+				#refresh_timestamp {
+					position:absolute;
+					bottom:0px; right:0px;
+					
+					text-align:right;
+					padding-right:5px;
+					font-style:italic;
+				}
+				
+				
+			#controls {
+				/* display: block;
+				position:relative; */
+				
+				display:flex;
+				flex-direction: row;
+				flex-wrap: nowrap;
+				
+				width: 		100%;
+				height: 	48%;
+				border-top:5px solid black;
+				border-bottom:2px solid black;
+			}
+
+
+				#appState {
+					position:relative;
+					display: inline-block;
+					width:	150px;
+					height: 100%;
+					
+					justify-content:center;
+					text-align:center;
+					
+					overflow-x: hidden;
+					overflow-y: auto;
+					word-wrap: normal;
+					word-break: break-all;
+					
+					border-right:1px solid black;
+					
+				}
+					.control_btn {
+						padding:	10px;
+						width: 		140px;
+						margin-bottom:3px;
+					}	
+				
+			
+
+				#veh_tbl {
+					display:inline-block;
+					position:relative;
+					
+					width: 250px;
+					height:100%;
+					
+					justify-content:center;
+					text-align:center;
+					
+				}
+					.veh_control {
+						width: 	100%;
+						height:100%;
+						overflow-y: auto;
+					}
+						.veh_row_top {
+
+						}
+						.veh_row_off {
+							background-color: red;
+						}
+						.veh_row_on {
+							background-color: lightgreen;
+						}
+							.veh_col_id {
+								width: 70px;
+								padding-right:8px;
+								text-align:right;
+							}
+							.veh_col_on {
+								width: 120px;
+								text-align:center;
+							}
+								.veh_btn {
+									width:70px;
+									padding:3px;
+								}
+
+			#map_div {
+				width:100%;
+				height: 50%;
+			}
+			
+				#map_main{
+					width:100%;
+					height:100%;
+				}
+			
+			
+
+</style>
+
+</head>
+
+<body>
+
+  
+  
+<div class="page_div">
+ 
+ 
+	<div id="header">
+		<div id="header_title">
+			<img src="CoCR_Tree_Logo.png" id="header_title_img"></img>
+			<span id="header_title_text">Snow Plow Ops</span>
+		</div>
+	</div>
+
+	<div id="status">
+		<div id="status_header">Snow Plow Application Status:</div>
+		<div id="status_content">... event details </div>
+		<div id="refresh_timestamp">Last refresh:... </div>
+	</div>
+
+
+	<div id="content">
+		<div id="content_main">
+
+			<div id="controls">
+				<div id="appState">
+					Application Mode: <br>
+					<button id="btn_Off"			   class="control_btn" value="Off"			>Off</button><br>
+					<button id="btn_Test"			   class="control_btn" value="Test_Mode"    >Test Mode</button><br>
+					<button id="btn_Pretreatment"	   class="control_btn" value="Pretreatment" >Pretreatment</button><br>
+					<button id="btn_MainsOnly"		   class="control_btn" value="Mains"		>Mains Only</button><br>
+					<button id="btn_All_Plow"	       class="control_btn" value="All_Plow"     >All Plow</button><br>
+
+				</div>
+				<div id="veh_tbl">
+						
+				</div>
+
+			</div>
+			<div id="map_div">
+				<arcgis-map id="map_main" basemap="topo">
+					<!-- basic buttons -->
+					  <arcgis-home    position="top-left"></arcgis-home>
+					  <arcgis-compass position="top-left"></arcgis-compass>
+					  <arcgis-zoom    position="top-left"></arcgis-zoom>	
+					  <arcgis-expand id="expand_search" position="top-left" expand-tooltip = "Address Search">
+						<arcgis-search></arcgis-search>
+					  </arcgis-expand>
+
+					  <arcgis-expand id="expand_search" position="bottom-left" expand-tooltip = "Legend">
+						<arcgis-legend position="bottom-left"></arcgis-legend>
+					  </arcgis-expand>
+
+					  <arcgis-layer-list position="top-right"></arcgis-layer-list>
+				</arcgis-map>
+			</div>
+
+		</div> <!-- content_main -->
+	</div> <!-- content -->
+</div> <!-- end pageDiv --> 
+  
+<div id="loader" class="display_none">
+THIS PAGE REQUIRES SIGN ON<br>
+</div>  
+
+
+<div id="confirm" class="display_none">
+	<div style="padding:15px;">
+		<div id="confirm_header" class="confirm_header">Warning: </div>
+		<div id='confirm_content' style="width:100%">Are you sure you would like to change the application state?</div>
+		<div style="float:right;margin-bottom:10px;">
+			<button id='btn_confirmCancel' class="confirm_btn">Cancel</button> <button id='btn_confirm' class="confirm_btn">Confirm</button>
+		</div>
+	</div>
+</div>
+
+
+<script type="module">
+console.log("Script; Module... running");
+
+// ArcGIS Imports
+ 
+const FeatureLayer =  await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
+const MapImageLayer = await $arcgis.import("@arcgis/core/layers/MapImageLayer.js");
+const Query =         await $arcgis.import("@arcgis/core/rest/support/Query.js");
+
+//const Map = 				await $arcgis.import("@arcgis/core/Map.js");
+//const MapView = 			await $arcgis.import("@arcgis/core/views/MapView.js");
+//const FeatureTable = await $arcgis.import("@arcgis/core/widgets/FeatureTable.js");
+
+// Globals:
+var app_state     = null;
+
+// globals for Portal layers; loaded at sign_on:
+
+const map_id      = "0e929ea130d14cdfb9e7ddc5437b9e1f"
+const portal      = "https://crgis.cedar-rapids.org/arcgisportal/";
+const configTable = new FeatureLayer({url: "https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Snowplow_Tracking/FeatureServer/117"});
+const eventTable  = new FeatureLayer({url: "https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Snowplow_Tracking/FeatureServer/118"});
+const vehTable    = new FeatureLayer({url: "https://crgis.cedar-rapids.org/arcgisserver/rest/services/CMO/Snowplow_Tracking/FeatureServer/119"});
+
+
+// Map Component
+let mapView = document.querySelector("arcgis-map")
+let event_status = document.getElementById("status_header")
+let event_detail = document.getElementById("status_content")
+
+
+////////////////////////////////
+// FUNCTIONS ///////////////////
+
+// UTILITIES
+async function cur_time_str(){
+	// current timestamp:
+	const date = new Date();
+	let hours = date.getHours();
+	const minutes = date.getMinutes().toString().padStart(2, '0');
+	const ampm = hours >= 12 ? 'PM' : 'AM';
+	hours = hours % 12 || 12; // Convert 0 to 12 for midnight
+	const formattedTime = `${hours}:${minutes} ${ampm}`;
+
+return formattedTime
+}
+
+
+// DATA QUERY FUNCTIONS
+async function get_query(layer, expr){ // attribute match, where_clause
+	var query_obj = {
+		where: expr,
+		outFields: ['*'],
+		returnGeometry:false
+	}	
+	var result = await layer.queryFeatures(query_obj)
+	return result.features
+}
+
+// Predefined Queries:
+async function get_config_data(){ // update global app_state
+	var features = await get_query(configTable, "OBJECTID > -1")
+	console.log('features...', features)
+	app_state = features[0].attributes['appState']
+	console.log('appState', app_state)
+	return features
+}
+
+async function get_event_data(){
+	var features = await get_query(eventTable, "eventDuration IS NULL")
+	if (features.length > 0){
+		// we found our event:
+		let start = (new Date(features[0].attributes['eventStart'])).toString()
+		console.log('Got event: started', start)
+	} else {
+		features = false
+	}
+	return features
+}
+
+async function get_veh_config(){
+	var features = await get_query(vehTable, "OBJECTID > -1")	
+	console.log('Got vehicles:',features.length, 'assets.')
+	return features
+}
+
+
+// APP PROCESS FUNCTIONS
+
+// vehConfig to div-table w/ user-interaction buttons; 
+async function process_veh(assets){
+	let veh_tbl = document.getElementById("veh_tbl")
+	
+	if (assets.length > 0){
+			var veh_content = '<div style="height:100%; overflow-y:auto;"><table class="veh_control"><tr class="veh_row_top"><td class="veh_col_id">Asset</td><td class="veh_col_on">Plow Map</td></tr>'
+			
+			var veh_list = []
+			assets.forEach((vehicle) => {
+				var sortby = 2
+				if (vehicle.attributes['snow_op'] == 'Yes'){	sortby = 0   }
+				veh_list.push([sortby, vehicle.attributes['asset_id'], vehicle.attributes['snow_op']])
+			})
+			
+			veh_list.sort( (a, b) => a[1].localeCompare(b[1]) )
+			veh_list.sort( (a, b) => a[0] - b[0] )
+			
+			veh_list.forEach((vehicle) => {
+				var asset = vehicle[1], 	isOn = vehicle[2]
+				var row_class = '', 		veh_row = '', 		btnText = '';
+				
+				if (isOn === 'Yes'){
+					btnText = 'Hide',		row_class = 'veh_row_on'
+				} else {
+					btnText = 'Show',		row_class = 'veh_row_off'
+				}
+
+				veh_row = '<tr class="'+row_class+'"><td class="veh_col_id">'+asset+'</td><td class="veh_col_on"><button id="'+asset+'" value="'+isOn+'" class="veh_btn">'+btnText+'</button></td></tr>'
+				veh_content += veh_row
+			})
+			
+			veh_content += '</table></div>'
+			veh_tbl.innerHTML = veh_content
+			
+	} else {
+			veh_tbl.innerHTML = 'Error: no assets recovered from vehConfig table.'
+			return false
+	}
+
+return true
+}
+
+// styles DOM elements to reflect app_State
+async function process_appState(state){
+	console.log("Setting controls for appState:", state)
+	// set the available button options based on appstate
+	
+	// get the buttons: 	
+	const btns = document.getElementsByClassName("control_btn");
+	
+	function set_btns_disabled(a_bool){
+		for (let i = 0; i < btns.length; i++){
+			btns[i].disabled = a_bool;
+		}
+	}	
+	
+	var content_string = 'Snow Plow Application Status: ' + state 
+	event_status.innerHTML = content_string
+	
+	if (state == "Off"){
+		// all buttons on, except 'off'
+		set_btns_disabled(false)
+		document.getElementById("btn_Off").disabled 			= true;
+	} else {
+		// mostly just 'off' that will be on.
+		set_btns_disabled(true)
+		document.getElementById("btn_Off").disabled 			= false;		
+	}
+}
+
+// uses event_data query result to update an 'event_detail' div.
+async function process_event(event){
+	var content_string = ''
+	
+	if (app_state == 'Off'){
+			content_string += '... the application is currently off.'
+	} else {
+		if (event == false || typeof(event) === "undefined"){
+			console.log('noevent: ', event)
+		
+			// usually indicates server has not created the log yet.
+			content_string += '... no event details available yet! Please check in a few minutes...'
+		} else {
+			// not off, not undefined...
+			// map event data:
+			var startedby     = event.attributes['eventStartBy'];
+			var start         = event.attributes['eventStart'];			
+			var startdate     = new Date(start);
+			let duration      = Date.now() - startdate 
+			
+			// Convert milliseconds to hours and minutes
+			const duration_hrs = Math.floor(duration / (1000 * 60 * 60));
+			const duration_min = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+			let duration_str = duration_hrs.toString() + ':' + duration_min.toString().padStart(2, '0')
+
+			//display:
+			let startdate_str = startdate.toLocaleString()
+			
+
+			// build the HTML:
+			content_string += '... Started on: ' + startdate_str + '<br>'
+			content_string += '... Started by: ' + startedby + '<br>'
+			content_string += '... Duration:   ' + duration_str + '<br>'
+		}
+		
+	}
+
+	event_detail.innerHTML = content_string
+	
+}
+
+
+// USER ACTION FUNCTIONS
+
+// change vehicle configs; 
+async function change_asset_config(asset, config){
+	
+	let where = "asset_id = '"+asset+"'"
+	var features = await get_query(vehTable, where)
+	
+	if (features.length > 0){
+		// new config from user;
+		features[0].attributes['snow_op'] = config;
+		
+		console.log(features)
+		// editsObject for ArcGIS REST
+		let edits = {updateFeatures: features}
+		vehTable.applyEdits(edits).then(async (editsResults) => {
+
+			// vehConfig changed successfully:
+			console.log("veh:", asset, ' now Snow_Op =', config)	
+			
+			// refresh list:
+			var assets = await get_query(vehTable, "OBJECTID > -1")
+			process_veh(assets)
+			
+		})
+		.catch((error) => {
+			console.log("Failed to change vehConfig")
+			console.log(error)
+			alert("Failed to change vehConfig")
+		});
+	} else {
+		console.log("Error: could not find ", asset, "in vehConfig")
+		return false
+	}
+return true	
+}
+
+// user is asking for a appState change, second step: Confirm.
+async function confirm_change(newState){
+	// popup a modal, pass through the newState value if confirm.
+	document.getElementById("confirm").classList.remove("display_none");
+	
+	document.getElementById('btn_confirm').addEventListener("click", function clickHandle(){
+		// confirm, changeState:
+		console.log("confirmed a change in appState");
+		document.getElementById('confirm').classList.add("display_none");
+		change_appState(newState);
+		
+		document.getElementById('btn_confirm').removeEventListener("click", clickHandle)
+		
+	})
+	document.getElementById('btn_confirmCancel').addEventListener("click", function clickHandle(){
+		// cancelled. hide modal.
+		document.getElementById('confirm').classList.add("display_none");
+		document.getElementById('btn_confirmCancel').removeEventListener("click", clickHandle)
+	})
+	
+}
+
+// user confirmed appState change; function to update
+async function change_appState(newState = 'Off'){
+
+	// applyEdits should only work if the layer exists...
+	let updateCollection = await get_config_data()
+	updateCollection[0].attributes['appState'] = newState
+	
+	let edits = {updateFeatures: updateCollection}
+	configTable.applyEdits(edits).then((editsResults) => {
+
+		// appState changed successfully:
+		app_state = updateCollection[0].attributes['appState']
+		console.log("appState changed:", updateCollection[0].attributes['appState'])	
+
+		process_appState(app_state) // changes buttons.
+		
+		
+	})
+	.catch((error) => {
+		console.log("Failed to change appState")
+		console.log(error)
+		alert("Failed to change appState")
+	});
+
+	
+}
+
+
+
+
+// a function to auto-refresh map_data
+async function refresh_app(){
+	// update avl_points, event_log
+	
+	//avl_points.refresh()
+	// refreshing a layer requires trawling the map-class.... (ugh).
+	
+	
+	var events = await get_event_data()
+	process_event(events[0])
+
+	var formattedTime = await cur_time_str()
+	document.getElementById("refresh_timestamp").innerHTML = "Last refreshed: " + formattedTime
+}
+
+// DOM interaction
+async function DOM_Listeners(){
+
+	
+	// Control (Mode) Buttons: 	
+	const btns = document.getElementsByClassName("control_btn");
+	for (let i = 0; i < btns.length; i++){
+	
+		btns[i].addEventListener("click", function(evt){
+			console.log("appState btn_:", evt.target.value)
+			confirm_change(evt.target.value)
+		})
+		
+	}
+
+	veh_tbl.addEventListener('click', function(event) {
+		console.log('veh_tbl interaction:', event.target.id, event.target.value)
+		var asset = event.target.id, value = event.target.value
+		
+		if (value == 'Yes'){
+			console.log("Turn off: ", asset);
+			change_asset_config(asset, 'No')
+			
+		} else {
+			console.log("Turn on: ", asset);
+			change_asset_config(asset, 'Yes')
+		}
+	})
+	
+	console.log("added DOM event listeners: control buttons and vehicle filters")
+	
+	
+	// loaded, set timestamp, then set auto-refresh
+	var formattedTime = await cur_time_str()
+	document.getElementById("refresh_timestamp").innerHTML = "Last refreshed: " + formattedTime
+	
+	console.log("... setting refresh")
+	
+	//setInterval(refresh_app, 60 * 1000); // 60 * 1000 milsec
+
+return true
+}
+
+
+
+
+
+
+	function sign_on(){
+		// really: let ESRI/Portal handle 'Auth', only Auth-users can 'post' edits anyway.  
+		// unauthorized users may see some 'html skeleton' if they try hard.
+
+		// try adding secured services (expect Portal sign-in popup default);
+		console.log("Trying Portal Sign in");
+		
+		// MAPVIEW INITIALIZATION 
+		async function map_config(){
+		
+			// set Portal to organization.
+			async function load_esriConfig(){
+				const esriConfig = await $arcgis.import("@arcgis/core/config.js");
+				esriConfig.portalUrl = portal;
+				console.log("... configured Portal Server.");
+			}	
+			
+			// set Map to Portal Item (center & zoom)
+			async function map_init(){
+				mapView.itemId = map_id;
+				mapView.center = [-91.65074851467115, 41.976330102403125]
+				mapView.zoom = 12
+			}
+
+
+			await load_esriConfig()
+			await map_init()
+
+			console.log("... past security...")
+			//console.log(mapView.map)
+			
+			
+			get_config_data().then(async (config) => {
+				await process_appState(app_state)
+
+				eventTable.load().then(async (response) => {
+					var events = await get_event_data()
+					process_event(events[0])
+				});
+		
+				vehTable.load().then(async (response) => {
+					var assets = await get_veh_config()
+						process_veh(assets)
+				});	
+				
+				// set listeners/events for interactions;
+				DOM_Listeners();
+				
+				
+				// popup config
+				const Popup = await $arcgis.import("@arcgis/core/widgets/Popup.js");
+				const pop = new Popup({
+					dockEnabled: true,
+					dockOptions: {
+						// Disables the dock button from the popup
+							buttonEnabled: false,
+						// prevents auto-reset of dockEnabled based on viewport/etc.
+							breakpoint:false,
+					}
+				})
+				mapView.popup = pop;	
+			})
+			
+			
+			return true
+			
+		}
+
+
+		// call to configure esri portal;  add webMap.
+		map_config().then((response) => {
+				// wait for layers and stuff.
+				console.log("map_configged")
+		
+		}).catch((error) => {
+			alert("Not authorized.")
+			document.getElementById("loader").classList.remove("display_none");
+			app_state = false
+		})
+		
+	
+		
+	}
+
+
+
+
+	// Kick things off:
+	app_state = sign_on()
+
+
+
+
+
+
+
+
+</script>
+
+
+
+</body>
+</html>
