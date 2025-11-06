@@ -1,0 +1,540 @@
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Maps Application</title>
+
+    <!-- dependencies -->
+	<link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.2/calcite.css" />
+	<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.32/"></script>
+    
+	<!-- custom styles / page layout -->
+	<style>
+      html,
+      body {}
+
+
+/* Primary Layouts */	  
+	td {white-space: nowrap}
+
+	.page_div {
+		position:relative;
+		margin-left:auto;
+		margin-right:auto;
+		width:99%; height:98%;
+	  }
+      
+	  .mapDiv {
+    	padding: 3px;
+    	margin:  0;
+    	height: 100%;
+    	width: 69%;
+		border: 2px solid black;
+		min-width:300px;
+      }
+
+
+	  .map_hdr {height:100px;
+	  
+	  }
+	  
+	  .tool_bar {
+		position: absolute; top:10px; left:69%;
+		margin-left: -140px;
+		width:120px;
+		
+		border: 2px solid black;
+		background: white;
+		padding: 3px;
+		z-index: 1;
+		
+		font-size:15px !important; 
+	  }
+
+	  .layer_bar {
+		position: absolute; top:250px; left:69%;
+		margin-left: -140px;
+		width:120px;
+		
+		border: 2px solid black;
+		background: white;
+		padding: 3px;
+		z-index: 1;
+		
+		font-size:15px !important; 
+	  }
+	  
+	  
+/* Custom Console */
+	  .console_div {
+	    position:absolute; 
+		top:0; right:0;
+		width:30%; height:100%;
+		padding:3px;
+		border: 2px solid black;
+		background:white;
+		display:inline-block;
+		visibility:visible;
+		z-index:6;
+		
+		
+	  }
+	  .console_log {
+		padding:3px;
+		width:99%;height:99%;
+		white-space:nowrap;
+		overflow:auto;
+	  }
+	  
+	  form {
+		display:inline;
+		margin:0;
+		padding:0;
+	  }
+
+	  hr { width:100%; height:1px; background: #fff; 
+		 margin:0px; padding:0px;}
+
+ 
+	  
+    </style>
+
+
+<script>
+
+
+
+// global definitions
+var verbose = false
+var zoom_set = 12
+var projno_input = 0
+var proj_sel = 0
+var proj_parcel_results = []
+
+// helper functions
+	// prints string to 'custom console' on the HTML page
+	function log_msg (msg) {
+		document.getElementById("my_console").innerHTML += msg;
+	} 
+	function clr_log() {
+		document.getElementById("my_console").innerHTML = ''
+	}
+
+	// filter Projects Layer
+	function apply_filter(){
+		// use promise to ensure layerView is ready
+		function setFeatureLayerViewFilter(expression){
+			mapView.whenLayerView(proj_lyr).then(function(featureLayerView) {
+				//obtained LayerView
+				featureLayerView.filter = {where: expression}
+			});
+		}
+
+		var filters = []
+		if (document.getElementById("status_proposed").checked)    {filters.push("Proposed")}
+		if (document.getElementById("status_scheduled").checked)   {filters.push("Scheduled")}
+		if (document.getElementById("status_construction").checked){filters.push("Construction")}
+		if (document.getElementById("status_complete").checked)    {filters.push("Completed")}
+
+		// build a filter expression from checkboxes		
+		filter_string = "Status IN ('"
+		filter_string += filters.join("','")	
+		filter_string += "')"
+
+		if (verbose) {log_msg("<br>... map filter set.")}
+		setFeatureLayerViewFilter(filter_string)
+	}
+	
+	// ProjectQuery (try to get from LayerView, else, go to FeatureLayer...)
+	async function proj_geo_query(projno){
+		if (verbose){log_msg("<br> ... ... clientside query: ")}
+			var query_obj = {
+						where: `ProjNo = ${projno}`,
+						outFields: ['ProjNo', 'ProjName', 'Status'],
+						returnGeometry:true
+			}
+		
+			const layerView = await mapView.whenLayerView(proj_lyr);	
+			var results = await layerView.queryFeatures(query_obj);
+
+			if (results.features.length == 0){
+				// we can try the FeatureLayer...
+				if (verbose){log_msg("<br> ... ... failed, fallback to server ")}
+
+				results = await proj_lyr.queryFeatures(query_obj);
+			}
+			
+		if (verbose){log_msg(results.features[0].attributes.ProjNo.toString())}
+		return results.features[0]
+	}
+	
+	// ParcelQuery (get from Service)
+	async function parc_geo_query(in_geo){
+		if (verbose){log_msg("<br> ... ... map service query.")}
+		var query_obj = {
+			spatialRelationship: "intersects",
+			geometry: in_geo,
+			outFields: ["PARCELID", "SITEADDRESS"],
+			returnGeometry:true
+		}
+
+		var result = await parc_lyr.queryFeatures(query_obj)
+		return result.features
+	}
+
+	
+// main functions
+async function map_generator(){
+	log_msg("getting things ready....")
+	// some map definitions
+		// popup
+		const Popup = 				await $arcgis.import("@arcgis/core/widgets/Popup.js");
+		const PopupTemplate = 		await $arcgis.import("@arcgis/core/PopupTemplate.js");
+		const cust_popup = new PopupTemplate({
+			outFields:["ProjNo", "ProjName", "Status"],
+			title: "",
+			content: "<span style='font-weight:bold;'>{ProjNo} - {ProjName}</span><br>" + "{Status} | {Type}<br>" +  "{MonthStart} {YearStart} -- {MonthEnd} {YearEnd} <br>"			
+		});
+
+        // layers
+		const FeatureLayer = 		await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
+        proj_lyr = new FeatureLayer({
+            url: "https://crgis.cedar-rapids.org/arcgisserver/rest/services/ProjectTracking_Production_Table/FeatureServer/0",
+			popupTemplate: cust_popup,
+			outFields: ["ProjName", "ProjNo", "Status"]
+        });
+		parc_lyr = new FeatureLayer({
+			url: "https://crgis.cedar-rapids.org/arcgis/rest/services/Parcels/FeatureServer/1",
+			popupEnabled: false,
+			outFields: ["PARCELID", "SITEADDRESS"]
+		});
+
+		// map
+		const Map = 				await $arcgis.import("@arcgis/core/Map.js");
+        map = new Map({    
+            basemap: "gray"
+        }); // end map
+    
+		if (verbose){log_msg("<br>... loaded Map modules; defined map.")}
+	
+	//invoke map
+		const MapView = 				await $arcgis.import("@arcgis/core/views/MapView.js");
+        mapView = new MapView({
+            container: "mapDiv",	 		// Reference to the container in html/css
+			map: map, 			   			// Reference to the map object created before the view
+            zoom: zoom_set,         		// Sets zoom level based on level of detail (LOD)
+            center: [-91.667, 41.975], 		// Sets center point of view using longitude,latitude
+			popup: new Popup({
+				defaultPopupTemplateEnabled:true
+			})
+        }); // end mapView
+
+        // shoehorn some popup customization here.
+        mapView.popup.visibleElements = { actionBar:false,
+                                            collapseButton:false,
+                                            closeButton:true,
+                                            heading:false};
+        mapView.popup.highlightEnabled = true;  // we'll handle highlights 'by selection'
+	
+		if (verbose){log_msg("<br>... drawn map, adding layers.")}
+		
+        // add the layers
+        map.add(proj_lyr);
+		
+		// setup a target 'object' for global variable 'projno_input'
+		projno_input = document.getElementById("proj_sel")
+		
+		// add a 'watch' for mapView selected feature... this keeps 'proj_sel' updated.
+		const reactiveUtils = 		await $arcgis.import("@arcgis/core/core/reactiveUtils.js");
+            reactiveUtils.watch( () => mapView.popup.selectedFeature, (sel_feat) => {
+              if (sel_feat){ // feature in popup;
+
+                  if (verbose){log_msg(`<br>New Select:<br>... ProjNo: ${sel_feat.attributes.ProjNo}`)}
+				  proj_sel = sel_feat.attributes.ProjNo
+				  document.getElementById("proj_sel").value = proj_sel
+
+              } else { // no selected feature/null
+                // fires almost randomly, not very reliable for actions.
+                if (verbose){log_msg(`<br>pop chg: no_feat`)}
+              }
+            }); // end popup.selectedFeature watcher.			
+		
+		// filtering (helper function and listeners).
+		apply_filter()
+		document.getElementById("status_complete").addEventListener('click',     function() { apply_filter()	});
+		document.getElementById("status_proposed").addEventListener('click',     function() { apply_filter()	});
+		document.getElementById("status_scheduled").addEventListener('click',    function() { apply_filter()	});
+		document.getElementById("status_construction").addEventListener('click', function() { apply_filter()	});
+		
+		// verbose/diagnostic listeners
+		document.getElementById("diagnostic").addEventListener('change', function() { verbose = this.checked })
+		
+		
+		
+		log_msg("<br> ... configuration complete!")
+		
+		async function pause(){
+			clr_log()
+			log_msg("Application ready...")
+		}
+		setTimeout(pause, 3500)
+		
+}
+
+
+
+
+async function get_parcels() {
+	
+	// take the selected project feature, 
+	  // buffer
+	  // get parcels ... within buffer
+	    // calculate distance from parcel to 'project'   
+
+	// check for a selection:
+	if (proj_sel > 0){
+	
+		if (verbose){log_msg("<br>Running for Project No. " + proj_sel)}
+	
+		// retrieve ESRI ArcGIS utility modules:
+			const distanceOperator = 		 await $arcgis.import("@arcgis/core/geometry/operators/distanceOperator.js");
+			const geodesicBufferOperator = await $arcgis.import("@arcgis/core/geometry/operators/geodesicBufferOperator.js");
+
+			if (!geodesicBufferOperator.isLoaded()){
+				await geodesicBufferOperator.load();
+			}
+				
+			if (verbose){log_msg("<br>... loaded Operator modules.")}
+
+			// query the geometry for proj_sel.
+			var proj = await proj_geo_query(proj_sel)
+			
+			if (verbose){log_msg("<br>... querying selected feature. ")}
+			
+			// buffer (dist from input)
+			var dist_buf = document.getElementById("dist_buf").value
+			const buffer = geodesicBufferOperator.execute(proj.geometry, Number(dist_buf), {unit: "feet"}) 
+			if (verbose){log_msg("<br>... buffered project; drawing...")}
+			
+			
+			// draw the buffer
+			GraphicsLayer = 		await $arcgis.import("@arcgis/core/layers/GraphicsLayer.js");
+			Graphic = 				await $arcgis.import("@arcgis/core/Graphic.js");
+			if (verbose){log_msg("<br>... loaded Graphics modules.")}
+			
+			if (!map.findLayerById("buffer_lyr")){
+				buffer_lyr = new GraphicsLayer({id:'buffer_lyr'});	// new empty graphic layer
+				map.add(buffer_lyr)
+			} else { 
+				buffer_lyr = map.findLayerById("buffer_lyr")
+			}	
+			
+
+			const polySymbol = {
+				type: "simple-fill", // autocasts as new SimpleFillSymbol()
+				color: [255, 255, 0, 0.6],
+				outline: {
+					color: [0, 0, 0, 0.5],
+					width: 2,
+				},
+			};
+					
+			if (buffer_lyr.graphics.length === 0) { // if no graphics...
+				buffer_lyr.add(
+					new Graphic({
+						geometry: buffer,
+						symbol: polySymbol
+						}),
+					);
+			} else {								// else, replace 1st graphic.
+			    const graphic = buffer_lyr.graphics.getItemAt(0);
+				graphic.geometry = buffer;
+			}
+			if (verbose){log_msg("<br>... buffer drawn.")}
+
+			// use the buffer geometry to spatialQuery parcels...
+			near_parcels = await parc_geo_query(buffer)
+
+			if (verbose){log_msg("<br>... intersected parcels obtained.")}
+
+			// loop and output results.
+			const parcel_sym = {            
+					type: "simple-fill",
+					color: [20, 130, 200, 0.5],
+					outline: {
+					  color: "white",
+					  width: 0.5,
+					}
+			}
+
+			// console headers;
+			var msg_str  = "<br><br>Reporting for ProjNo " + proj_sel + "<br>.. " + proj.attributes.ProjName + "<br>"
+				msg_str += ".. at " + dist_buf + " feet, there are " + near_parcels.length.toString() + " affected parcels.<br>"
+				msg_str += "<table style='border:1px solid black'>" + "<tr><td>GPN</td><td>Distance</td><td style='padding-left:10px;'>Address</td></tr>"
+
+				
+			// csv headers (global variable, export is user initiated, later/separately).
+				proj_parcel_results = ''
+				proj_parcel_results += 'GPN, SiteAddress, Dist, Metadata: Parcels within ' + dist_buf + ' feet of Project #' + proj_sel.toString() + ' ' + proj.attributes.ProjName + '\n'
+
+			var geom_array = []
+			// the actual looping...
+			near_parcels.forEach(parcel => {
+				// calculate distance between 'proj_sel' and 'parcel':
+				var temp_dist = Math.round(distanceOperator.execute(proj.geometry, parcel.geometry), 0)
+				
+				// assign symbol
+				parcel.symbol = parcel_sym
+				
+				// add results to csv_string...
+				proj_parcel_results += parcel.attributes.PARCELID.toString() + "," + parcel.attributes.SITEADDRESS + "," + temp_dist + "\n"
+				
+				// print results to console 
+				msg_str += "<tr><td>" + parcel.attributes.PARCELID.toString() + "</td><td style='text-align:right; padding-right:6px;'>" + temp_dist.toString() + "</td><td>" + parcel.attributes.SITEADDRESS + "</td></tr>"
+				
+				
+				// geom array for mapView
+				geom_array.push(parcel.geometry)
+			})
+
+			log_msg(msg_str)
+			// add the parcel list to the map:
+			mapView.graphics.removeAll();
+			mapView.graphics.addMany(near_parcels)
+			
+			// enable the export button...
+			document.getElementById("export_btn").removeAttribute("disabled")
+			
+			log_msg("</table>");
+			if (verbose){log_msg("<br><br>Reporting complete.  Export available.")}
+			
+			mapView.closePopup();
+			mapView.goTo(geom_array);
+			
+
+	} else {		
+		log_msg("<br>No project selected.")
+	}
+}
+
+
+async function export_results() {
+	var save_result = await saveFile(proj_parcel_results);
+	log_msg("<br> File downloaded.")
+}
+
+async function saveFile(csv_String){
+      var mystring = csv_String;
+      var myblob = new Blob([mystring], {
+        type: 'text/plain'
+      });
+
+      if( window.showSaveFilePicker ) {
+            const opts = {
+                types: [{
+                  description: 'Comma Separated Values',
+                  accept: {'text/plain': ['.csv']},
+                }],
+                suggestedName: 'ProjectTools_AffectedParcels.csv',
+              };
+            var handle = await showSaveFilePicker(opts);
+            var writable = await handle.createWritable();
+            await writable.write( myblob );
+            writable.close();
+        }else{
+          log_msg( "xxx" );
+        }
+		return "Fin"
+}
+
+
+//wait for document:
+const run_onLoad = window.addEventListener('DOMContentLoaded', function() {
+
+	// setup map stuff
+	map_generator()
+	
+	
+}); // end onload;
+
+
+</script>
+
+
+
+</head>
+
+
+
+
+
+
+
+<body>
+<!-- viewport container -->
+<div class="page_div" id="page_div">
+
+
+
+  <!-- maps container -->
+  <div class="mapDiv" id="mapDiv">
+  
+      <div class="tool_bar" id="tool_bar">
+          <form name="basemap_selector">
+		  Buffer Dist.:<br>
+		  <input type="text" id="dist_buf"  name="dist_buf" value="500" style="width:40px; text-align:right;"> feet<br>
+		  
+		  Project No:<br>
+		  <input type="text" id="proj_sel"  name="proj_sel" value="0" style="width:120px; background-color:#E8E8E8; text-align:right; " readonly><br>
+		  <hr style="margin-top:3px;margin-bottom:3px;color:black;background-color:black;">
+		  
+		  <button type="button" onclick="get_parcels();"     style="width:120px">Get Parcels</button><br>
+		  <button type="button" id="export_btn" onclick="export_results();"  style="width:120px" disabled>Export Result</button><br>
+			<div style="text-align:right;">
+			<input type="checkbox" id="diagnostic" style="padding-top:8px;"> Verbose
+			</div>
+		  
+		  <hr style="margin-top:3px;margin-bottom:3px;color:black;background-color:black;">
+		  <button onClick="window.location.href=window.location.href" style="width:120px;">Refresh Page</button>
+		
+        </form>
+      </div>
+	  
+	  <div class="layer_bar">
+		<form name="proj_filter">
+		Project Filters<br>
+		<hr style="margin-top:3px;margin-bottom:3px;color:black;background-color:black;">
+			<input type="checkbox" id="status_proposed"     checked> Proposed<br>
+			<input type="checkbox" id="status_scheduled"    checked> Scheduled<br>
+			<input type="checkbox" id="status_construction" checked> Construction<br>
+			<input type="checkbox" id="status_complete"            > Complete<br>
+		</form>
+
+	  </div>
+	  
+
+	  
+  </div> <!-- end map container -->
+  
+  <!-- righthand pane -->
+  <div class="console_div" id="console_div">
+      <div class="console_log" id="my_console">
+      Loading...
+      </div>
+  </div>
+</div> <!-- end pageDiv --> 
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
