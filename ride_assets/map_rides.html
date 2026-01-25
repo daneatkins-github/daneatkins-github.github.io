@@ -67,22 +67,34 @@
                     background-color: darkgray;
                     font-weight: bold;
                 }
+        select {
+            box-sizing: border-box; 
+            font-size: clamp(11px, 2.2vw, 18px);
+        }
+        button {
+            box-sizing: border-box; 
+            font-size: clamp(11px, 2.2vw, 18px);
+        }
         .filters {
             position: fixed;
                 top: 40px;
                 z-index: 9000;
-                height: 32px;
+                height: 42px;
                 width: 100%;
-			overflow-x:auto;
+            overflow-y:hidden;
+            overflow-x:auto;
             background-color: #e0e0e0;
             border-bottom: 1px solid black;
             display: flex;
-                align-items: center;
-                padding-left: 10px; 
+                align-items: top;
+
+                
 
         }
+        
+        
             .filterBySelection {
-                height:25px;
+                
                 margin:5px;
                 padding:3px;
                 padding-left:6px;
@@ -99,8 +111,10 @@
                     background-color: orange;
                 }
             .selectFilter {
-				display:inline-block;
+                display:inline-block;
+                height:220px;
                 margin:5px;
+                padding-left:6px;
                 padding:3px;
                 border:1px solid black;
                 border-radius:6px;
@@ -138,27 +152,24 @@
                     padding:0px;
                     overflow-y: auto;
                     background-color:white;
-                    min-width:800px;
-                    overflow-x:auto;
-                    
                 }   
-                #map_main {
-                    position:relative;
-                    flex: 1 1;
-                    width: 100%
-                }
-
-                #tableContainer {
-                    flex: 1 1;
-                    width:100%;
-                    background-color: white;       
-                    flex-direction: column;
-                    z-index:5;
-                }
-                    #tableContainer.active {
-                        display:flex !important;
+                    #map_main {
+                        position:relative;
+                        flex: 1 1;
+                        width: 100%
                     }
- 
+
+                    #tableContainer {
+                        flex: 1 1;
+                        width:100%;
+                        background-color: white;       
+                        flex-direction: column;
+                        z-index:5;
+                    }
+                        #tableContainer.active {
+                            display:flex !important;
+                        }
+    
 
 
                 arcgis-feature-table {
@@ -190,6 +201,7 @@
             margin-right:20px;
             height:24px;
             width:24px;
+        pointer-events:none;
     }
         .check.on {
             display:default;
@@ -219,9 +231,12 @@
             <img src="https://daneatkins-github.github.io/ride_assets/chk_off.png" id="chartsChk_off" class="check">
         </div>
     </top>
-    <div class="filters">
+    <div id="filters" class="filters">
+                <button id="filter_expand" class="filterBySelection">Expand Filters</button>
                 <button id="table_filterBySelection_btn" class="filterBySelection">Filter by Selection</button>
-                <div id="selectFilters" style="display:inline-block;overflow-x:auto;white-space:nowrap;">
+                <div id="selectFilters" style="display:inline-block;overflow-x:auto;overflow-y:hidden;white-space:nowrap;">
+                    
+                
                     <!-- dynamic filters -->
 
                 </div>
@@ -241,46 +256,65 @@
     </div>
 
     <div class="contentSection" id="chartsSection">
+    <div style="height:100%;min-width:800px;width:100%; overflow-y:auto;">
         <div class="canvasrow">
-            <div class="canvascard">
-                <canvas id="speed_byBike_chart"></canvas>
-            </div>
-            <div class="canvascard">
-                <canvas id="time_byBike_chart"></canvas>
-            </div>
-            <div class="canvascard">
-                <canvas id="sum_miles_byBike_chart"></canvas>
-            </div>
-    </div>
-    <div class="canvasrow">
-            <div class="canvascard">
-                <canvas id="sum_miles_byYear_chart"></canvas>
-            </div>
-            <div class="canvascard">
-                <canvas id="sum_hours_byYear_chart"></canvas>        
-            </div>        
-            <div class="canvascard">
-                <canvas id="avg_speed_byYear_chart"></canvas>        
-            </div>        
-
-
-    </div>
-    <div class="canvasrow">
-            <div class="canvascard">
-                <canvas id="miles_perBike_byYear_chart"></canvas>
-            </div>
-            <div class="canvascard">
-                <canvas id="hours_perBike_byYear_chart"></canvas>
-            </div>
+                <div class="canvascard">
+                    <canvas id="speed_byBike_chart"></canvas>
+                </div>
+                <div class="canvascard">
+                    <canvas id="time_byBike_chart"></canvas>
+                </div>
+                <div class="canvascard">
+                    <canvas id="sum_miles_byBike_chart"></canvas>
+                </div>
         </div>
+        <div class="canvasrow">
+                <div class="canvascard">
+                    <canvas id="sum_miles_byYear_chart"></canvas>
+                </div>
+                <div class="canvascard">
+                    <canvas id="sum_hours_byYear_chart"></canvas>        
+                </div>        
+                <div class="canvascard">
+                    <canvas id="avg_speed_byYear_chart"></canvas>        
+                </div>        
+
+
+        </div>
+        <div class="canvasrow">
+                <div class="canvascard" style="width:47%">
+                    <canvas id="miles_perBike_byYear_chart" ></canvas>
+                </div>
+                <div class="canvascard" style="width:47%">
+                    <canvas id="hours_perBike_byYear_chart"></canvas>
+                </div>
+            </div>
         
-        
+    </div>                
     </div>
     </main>
 
 
 <script type="module">
-    // MapLoad:
+//
+document.getElementById('filter_expand').addEventListener('click', () => {
+    const filtersDiv = document.getElementById('filters');
+    if (filtersDiv.style.height === '230px') {
+        filtersDiv.style.height = '42px';
+        document.getElementById('filter_expand').textContent = 'Expand Filters';
+        document.getElementById('filter_expand').classList.remove('active');
+       
+    } else {  
+        filtersDiv.style.height = '230px';
+        document.getElementById('selectFilters').style.display = 'inline-block';
+        document.getElementById('filter_expand').textContent = 'Collapse Filters';
+        document.getElementById('filter_expand').classList.add('active');
+    }
+    
+});
+
+
+// MapLoad:
     const mapElem = document.querySelector("arcgis-map");
     
     const table = document.querySelector("arcgis-feature-table");
@@ -292,9 +326,11 @@
     
     // Build Layers from Arrays:
     var layers_names  = ['2016', '2017',  '2018',   '2019', '2020', '2021', '2022', '2023', '2024','2025']
-    var layers_colors = ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d','#666666','green', 'lightblue']
+    var layers_colors = ['#c3c4c7','#a7aaad', '#4f94d4','#3582c4','#2271b1','#135e96','#0a4b78','#043959','#01263a','#00131c']
     var layers = {}
 
+
+                        
     
     // define popup (once for all layers/same schema):
     
@@ -833,7 +869,7 @@ return lyr_feature
             select.id = `filter_${filterField}`;
             select.innerHTML = `<option value="">All ${filterField}</option>`;
             select.classList.add("selectFilter");
-
+            select.multiple = true;
             console.log("Building checklist box for field:", filterField);
             const checkboxesDiv = document.createElement('div');
             checkboxesDiv.id = `checkboxes_${filterField}`;
@@ -852,9 +888,6 @@ return lyr_feature
                 const value = feature.attributes[filterField];
                 console.log(" filterField value:", value);
                 const option = document.createElement('option');
-                    if (value == null || value == undefined || value == "") {
-                        value = "Unknown'";
-                    }
                 option.value = value;
                 option.textContent = value;
                 select.appendChild(option);
@@ -883,20 +916,33 @@ return lyr_feature
     function applyFilters() {
         let whereClauses = [];
 
+
         filters.forEach((filterField) => {
+            // 
+            let filter_whereClause = ''
             const select = document.getElementById(`filter_${filterField}`);
-            const value = select.value;
-            
-            if (value === "Unknown") {
-                whereClauses.push(`(${filterField} IS NULL OR ${filterField} = '')`);
-            } else {
-                if (value){
-                whereClauses.push(`${filterField} = '${value}'`);
-                }
+
+            // handle multiple selection
+            const selectedOptions = Array.from(select.selectedOptions);
+            const values = selectedOptions.map(option => option.value);
+            //const value = select.value;
+
+            console.log(`Applying filter for field ${filterField} with values:`, values);
+
+            for (let value in values){
+                console.log(`... value[${value}]:`, values[value])
+                // build a single where clause:
+                filter_whereClause += (values[value] !== '') ? `${filterField} = '${values[value]}' OR ` : ''
+
             }
             
+            console.log(`... filter_whereClause for ${filterField}:`, filter_whereClause)
 
-
+            if (filter_whereClause !== ''){
+                // remove trailing ' OR '
+                filter_whereClause = filter_whereClause.slice(0, -4);
+                whereClauses.push(`(${filter_whereClause})`);
+            }
 
         });
 
@@ -934,14 +980,14 @@ async function erase_charts (){
     console.log('Erasing',charts)
 
     for(let key in charts){
-        console.log('Erasing chart:',key)
+       // console.log('Erasing chart:',key)
         charts[key].destroy();
         
     }
-    console.log('charts',charts)
+ //   console.log('charts',charts)
 
     charts = {}
-    console.log('charts:',charts)
+   // console.log('charts:',charts)
     console.log("All charts erased.");
 return true
 }   
@@ -988,14 +1034,14 @@ function chart_simple(
         }
 
         const data = await get_data(x);
-        console.log("Chart Data:", data);
+      //  console.log("Chart Data:", data);
 
         // list of labels;
         let labels = data.map(d => d.group);
-        console.log("mapLabels:",labels)
+       // console.log("mapLabels:",labels)
         // list of values;
         let values = data.map(d => d.stat);
-        console.log("mapValues:",values)
+       // console.log("mapValues:",values)
 
                 // now create the chart
         const chart = new Chart(ctx, {      
@@ -1062,7 +1108,7 @@ function chart_twoGrouped_simple(
 
 
             const result = await ride_attr.queryFeatures(query);
-            console.log("Raw result:", result);
+         //   console.log("Raw result:", result);
 
             if (x == 'TimeMove'){
                 return result.features.map(feature => ({
@@ -1080,7 +1126,7 @@ function chart_twoGrouped_simple(
         }
 
         const data = await get_data(x);
-        console.log("Chart Data:", data);
+       // console.log("Chart Data:", data);
 
         // sort data:
         data.sort((a, b) => {
@@ -1166,7 +1212,7 @@ function chart_twoGrouped_stacked(
 
 
             const result = await ride_attr.queryFeatures(query);
-            console.log("Raw result:", result);
+          //  console.log("Raw result:", result);
 
             if (x == 'TimeMove'){
                 return result.features.map(feature => ({
@@ -1184,7 +1230,7 @@ function chart_twoGrouped_stacked(
         }
 
         const data = await get_data(x);
-        console.log("Chart Data:", data);
+       // console.log("Chart Data:", data);
 
         // sort data:
         data.sort((a, b) => {
@@ -1332,7 +1378,4 @@ set_charts()
 
 </body>
 
-
 </html>
-
-
