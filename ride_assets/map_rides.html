@@ -127,8 +127,8 @@
  
         main {      
             position:absolute;
-                top:80px;
-            height:calc(100dvh - 80px);
+                top:82px;
+            height:calc(100dvh - 82px);
             width:100%;
 
             display:flex;
@@ -259,17 +259,6 @@
     <div style="height:100%;min-width:800px;width:100%; overflow-y:auto;">
         <div class="canvasrow">
                 <div class="canvascard">
-                    <canvas id="speed_byBike_chart"></canvas>
-                </div>
-                <div class="canvascard">
-                    <canvas id="time_byBike_chart"></canvas>
-                </div>
-                <div class="canvascard">
-                    <canvas id="sum_miles_byBike_chart"></canvas>
-                </div>
-        </div>
-        <div class="canvasrow">
-                <div class="canvascard">
                     <canvas id="sum_miles_byYear_chart"></canvas>
                 </div>
                 <div class="canvascard">
@@ -278,9 +267,34 @@
                 <div class="canvascard">
                     <canvas id="avg_speed_byYear_chart"></canvas>        
                 </div>        
+        </div>
+        <div class="canvasrow">
+                <div class="canvascard">
+                    <canvas id="elev_byYear_chart" ></canvas>
+                </div>
+                <div class="canvascard">
+                    <canvas id="sum_elev_perBike_byYear_chart"></canvas>
+                </div>
+                <div class="canvascard">
+                    <canvas id="elev_PerMile_perBike_byYear_chart"></canvas>
+                </div>
+        </div>
 
+        <div class="canvasrow">
+                <div class="canvascard" style="width:47%">
+                    <canvas id="speed_byBike_chart"></canvas>
+                </div>
+                <div class="canvascard" style="width:47%">
+                    <canvas id="time_byBike_chart"></canvas>
+                </div>
 
         </div>
+        <div class="canvasrow">
+                <div class="canvascard" style="width:98%">
+                    <canvas id="sum_miles_byBike_chart"></canvas>
+                </div>
+        </div>
+
         <div class="canvasrow">
                 <div class="canvascard" style="width:47%">
                     <canvas id="miles_perBike_byYear_chart" ></canvas>
@@ -288,7 +302,7 @@
                 <div class="canvascard" style="width:47%">
                     <canvas id="hours_perBike_byYear_chart"></canvas>
                 </div>
-            </div>
+        </div>
         
     </div>                
     </div>
@@ -897,8 +911,11 @@ return lyr_feature
 
 
             // add event listener to apply filter
-            select.addEventListener('change', async () => {
-                applyFilters();
+            select.addEventListener('change', async (event) => {
+                console.log("Filter changed:", event.target.id, "Value:", event.target.value);
+
+
+                applyFilters(event.target.id, event.target.value);
                 await erase_charts()
                 set_charts()
 
@@ -913,7 +930,7 @@ return lyr_feature
     }
 
     
-    function applyFilters() {
+    function applyFilters(targetId = null, value = null) {
         let whereClauses = [];
 
 
@@ -929,20 +946,28 @@ return lyr_feature
 
             console.log(`Applying filter for field ${filterField} with values:`, values);
 
-            for (let value in values){
-                console.log(`... value[${value}]:`, values[value])
-                // build a single where clause:
-                filter_whereClause += (values[value] !== '') ? `${filterField} = '${values[value]}' OR ` : ''
+            // if all_values (i.e.,value = ''), clear all 'selections' on this filter, else build where clause
+            if (targetId === `filter_${filterField}` && value === '') {
+                // clear all selections
+                select.selectedIndex = 0; // select 'All' option
+                console.log(`... cleared selections for ${filterField}`);
+            } else {
+                // use values to build filters
+                for (let value in values){
+                    console.log(`... value[${value}]:`, values[value])
+                    // build a single where clause:
+                    filter_whereClause += (values[value] !== '') ? `${filterField} = '${values[value]}' OR ` : ''
 
-            }
-            
-            console.log(`... filter_whereClause for ${filterField}:`, filter_whereClause)
+                }
+                
+                console.log(`... filter_whereClause for ${filterField}:`, filter_whereClause)
 
-            if (filter_whereClause !== ''){
-                // remove trailing ' OR '
-                filter_whereClause = filter_whereClause.slice(0, -4);
-                whereClauses.push(`(${filter_whereClause})`);
-            }
+                if (filter_whereClause !== ''){
+                    // remove trailing ' OR '
+                    filter_whereClause = filter_whereClause.slice(0, -4);
+                    whereClauses.push(`(${filter_whereClause})`);
+                }
+        }
 
         });
 
@@ -959,12 +984,8 @@ return lyr_feature
         }
     }
 
-// default value:
+
     await buildFilters()
-    let filter_Act = document.getElementById('filter_Act_Type')
-    filter_Act.value = "Ride"
-    console.log(filter_Act.value)
-   // applyFilters();
 
 
 
@@ -999,7 +1020,7 @@ function chart_simple(
     x     = 'Dist_Mi',  // data field
     stat  = 'sum',      // built in methods / esri
     group = null,
-    
+    useColor = false
 ){
     require(['https://cdn.jsdelivr.net/npm/chart.js'], async function(Chart){
         async function get_data(x) {
@@ -1043,7 +1064,15 @@ function chart_simple(
         let values = data.map(d => d.stat);
        // console.log("mapValues:",values)
 
-                // now create the chart
+       let backgroundColors = 'rgba(75, 192, 192, 0.6)'
+       if (useColor == 'YES'){
+        backgroundColors = []
+        labels.forEach((label, index) => {
+            backgroundColors.push(`hsl(${index * 360 / labels.length}, 70%, 60%)`)
+           })
+       }
+
+        // now create the chart
         const chart = new Chart(ctx, {      
             type: type,
             data: {
@@ -1051,7 +1080,7 @@ function chart_simple(
                     datasets: [{
                         label: title,
                     data: values,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    backgroundColor: backgroundColors,
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
                 }]
@@ -1079,6 +1108,129 @@ function chart_simple(
         charts[`${x}_${stat}_by${group}_chart`] = chart;
     })
 }
+
+
+
+
+function chart_simple_elevationPerMile( 
+    ctx   = null,   // canvas contex
+    type  = 'bar',  // chart.js 
+    title = "Sum of Elev per Mile by Year", // chart title
+    
+    x     = 'ElevGain',  // data field
+    x2    = 'Dist_Mi', // normalization field
+
+    stat  = 'sum',      // built in methods / esri
+    group = 'Date_Yr',
+    useColor = false
+){
+    require(['https://cdn.jsdelivr.net/npm/chart.js'], async function(Chart){
+        async function get_data(x) {
+            const query = ride_attr.createQuery();
+            query.where = table.layer.definitionExpression; // apply current table filter
+            query.outStatistics = [{
+                onStatisticField: x,
+                outStatisticFieldName: stat,
+                statisticType: stat
+            }];
+
+           
+            if (group){
+                query.groupByFieldsForStatistics = [group];
+            }
+
+            // get elev gain by group
+            const result = await ride_attr.queryFeatures(query);
+            console.log("Raw result1:", result);
+
+            // sum of miles by group (for normalization)
+            const query2 = ride_attr.createQuery();
+            query2.where = table.layer.definitionExpression; // apply current table filter
+            query2.outStatistics = [{
+                onStatisticField: x2,
+                outStatisticFieldName: stat,
+                statisticType: stat
+            }];
+            if (group){
+                query2.groupByFieldsForStatistics = [group];
+            }
+            const result2 = await ride_attr.queryFeatures(query2);
+            console.log("Raw result2:", result2);
+
+
+            // for features in result, divide elev gain by miles for each group:
+                //  normalize elevation gain by miles, in place, then return as usual:
+            result.features.forEach(feature => {
+                const groupValue = feature.attributes[group];
+                const elevGain = feature.attributes[stat];
+                const milesRecord = result2.features.find(f => f.attributes[group] === groupValue);
+                const miles = milesRecord ? milesRecord.attributes[stat] : 1; // avoid divide by zero
+                feature.attributes[stat] = elevGain / miles; // normalize elev gain by miles
+            });
+
+            return result.features.map(feature => ({
+                group: feature.attributes[group],
+                stat: feature.attributes[stat]
+            }));
+        }
+
+        const data = await get_data(x);
+      //  console.log("Chart Data:", data);
+
+        // list of labels;
+        let labels = data.map(d => d.group);
+       // console.log("mapLabels:",labels)
+        // list of values;
+        let values = data.map(d => d.stat);
+       // console.log("mapValues:",values)
+
+       let backgroundColors = 'rgba(75, 192, 192, 0.6)'
+       if (useColor == 'YES'){
+        backgroundColors = []
+        labels.forEach((label, index) => {
+            backgroundColors.push(`hsl(${index * 360 / labels.length}, 70%, 60%)`)
+           })
+       }
+
+        // now create the chart
+        const chart = new Chart(ctx, {      
+            type: type,
+            data: {
+                labels: labels,
+                    datasets: [{
+                        label: title,
+                    data: values,
+                    backgroundColor: backgroundColors,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, 
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: stat
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: group
+                        }
+                    }
+                }
+            }
+        });
+        charts[`${x}_${stat}_by${group}_chart`] = chart;
+    })
+}
+
+
+
 
 
 
@@ -1270,7 +1422,7 @@ function chart_twoGrouped_stacked(
                         stacked: true,
                         title: {
                             display: true,
-                            text: stat
+                            text: stat + ' of ' + x
                         }
                     },
                     x: {
@@ -1299,7 +1451,8 @@ chart_simple(
     "Average Speed by Bike",
     'SpeedAvg',
     'avg',
-    'Bike_Nm'
+    'Bike_Nm',
+    'YES'
     )    
 
     chart_simple(
@@ -1308,7 +1461,8 @@ chart_simple(
     "Sum of Time by Bike",
     'TimeMove',
     'sum',
-    'Bike_Nm'
+    'Bike_Nm',
+    'YES'
     )    
 
     chart_simple(
@@ -1317,7 +1471,8 @@ chart_simple(
         "Sum of Miles by Bike",
         'Dist_Mi',
         'sum',
-        'Bike_Nm'
+        'Bike_Nm',
+        'YES'
     )
 
 chart_simple(
@@ -1369,8 +1524,31 @@ chart_simple(
     'Date_Yr'
         )
 
+chart_simple(
+    document.getElementById("elev_byYear_chart").getContext('2d'),
+    'bar',
+    "Elevation Gain by Year",
+    'ElevGain',
+    'sum',
+    'Date_Yr'
+)
+chart_twoGrouped_stacked(
+    document.getElementById("sum_elev_perBike_byYear_chart").getContext('2d'),
+    'bar',
+    "Sum of Elevation Gain by Year per Bike",
+    'ElevGain',
+    'sum',
+    'Date_Yr',
+    'Bike_Nm'
+)
+chart_simple_elevationPerMile( 
+    document.getElementById("elev_PerMile_perBike_byYear_chart").getContext('2d'),   // canvas contex
+)
+
+
 console.log('Charts:', charts)
 }
+
 set_charts()
 </script>
  
