@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="icon" href="assets/icon_favicon.ico" type="image/x-icon">
+    <title>MWE Expand Blocking User</title>
+    <!-- ArcGIS Import -->
+    <script type="module" 		src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
+    <link 	rel="stylesheet" 	href="https://js.arcgis.com/4.33/esri/themes/light/main.css" />
+
+    <script          			src="https://js.arcgis.com/4.33/"></script>
+    <script type="module" 		src="https://js.arcgis.com/4.33/map-components/"></script>
+
+    <!-- Custom Imports -->
+    <link rel="stylesheet" href="assets/css_InfraView_styles.css" />
+
+
+<style>
+    .button{
+        background-color:bisque;
+    }
+        .button:hover {
+            background-color:antiquewhite;
+        }
+
+    .jsButton {
+        border:1px solid black;
+        background-color:lightgray;
+        width:140px;
+    }
+        .jsButton:hover {
+            background-color:darkgray;
+        }
+</style>
+<script>
+    async function other_stuff(){
+
+        let context = document.getElementById("context")
+    
+        context.innerHTML = "the Other Stuff"
+
+    }
+
+</script>
+
+
+
+</head>
+
+
+<body>
+
+
+<div id="interactions" style="height:50dvh; width:100dvw">
+
+    <div id="button_1" class="jsButton">I'm jsButton 1</div>
+
+    <div id="button_2" class="jsButton">I'm jsButton 2</div>
+
+    <div id="button_3" class="jsButton">I'm jsButton 3</div>
+
+    <button id="theRealButton" class="button" >Real Button w/ JS</button>
+    <button id="theOtherButton" class="button" onclick="other_stuff()">Real Button</button>
+
+    <div id="context">
+
+    </div>
+
+</div>
+<div id="mapContainer" style="height:50dvh; width:100dvw">
+
+        <arcgis-map id="map_main" style="height:100%; width:100%;" basemap="arcgis/topographic" center="-118.805, 34.020" zoom="13">
+            <!-- map bottom-right -->
+            <arcgis-scale-bar position="bottom-right" unit="dual"></arcgis-scale-bar>
+			
+
+            <!-- basic ~nav~ buttons -->
+            <arcgis-home    position="top-left"></arcgis-home>
+            <arcgis-expand id="expand_search" position="top-left" expand-tooltip="Address Search" expanded>
+                <arcgis-search></arcgis-search>
+            </arcgis-expand>
+            <arcgis-zoom    position="top-left"></arcgis-zoom>	
+            <arcgis-compass position="top-left"></arcgis-compass>
+
+      
+
+            <!-- Map bottom-left -- Tools -->
+            <arcgis-expand id = "expand_measure_dist" position="bottom-left" mode="floating" expand-tooltip="Line Measure" placement="top" group="expand_group">
+                <arcgis-distance-measurement-2d position="top-right"></arcgis-distance-measurement-2d>				  
+            </arcgis-expand>
+            <arcgis-expand id = "expand_measure_area" position="bottom-left" mode="floating" expand-tooltip="Area Measure" placement="top" group="expand_group">
+                <arcgis-area-measurement-2d position="top-right"></arcgis-area-measurement-2d>				  
+            </arcgis-expand>
+            <arcgis-expand id="expand_coords"  position="bottom-left" mode="floating" expand-tooltip="Coordinates" placement="top" group="expand_group">
+                <arcgis-coordinate-conversion position="bottom-left" hide-expand-button></arcgis-coordinate-conversion>
+            </arcgis-expand>
+            <arcgis-expand id="expand_sketch"  position="bottom-left" mode="floating" expand-tooltip="Sketch" placement="top" group="expand_group">
+                <!--<arcgis-sketch    position="bottom-left"  creationMode="update"></arcgis-sketch>-->
+            </arcgis-expand>
+            <arcgis-expand id="expand_print"   position="bottom-left" mode="floating" expand-tooltip="Print" placement="top" group="expand_group">
+                <arcgis-print></arcgis-print> <!-- 'arcgis-print' generates 'undefined' error in Console.log -->
+            </arcgis-expand>				  
+  		  
+		  
+		  <!-- Map bottom-right -->
+		  
+		 </arcgis-map>
+
+</div>
+
+
+
+<script type="module">
+    let context = document.getElementById("context")
+    var counter = 0
+    async function do_stuff(evt){
+        counter += 1
+        context.innerHTML = "Counting! ... " + counter.toString()
+
+    }
+
+
+
+    let mapElem = document.querySelector("arcgis-map") // provides mapElem.map and mapElem.view?
+
+
+    let btn1 = document.getElementById("button_1")
+    let btn2 = document.getElementById("button_2")
+    let btn3 = document.getElementById("button_3")
+    let daBtn = document.getElementById("theRealButton")
+
+    btn1.addEventListener("click", do_stuff)
+    btn2.addEventListener("click", do_stuff)
+    btn3.addEventListener("click", do_stuff)
+    daBtn.addEventListener("click", do_stuff)
+
+
+</script>
+
+</body>
+</html>
