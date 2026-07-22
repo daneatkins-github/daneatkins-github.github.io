@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>esriConfig</title>
+    <link rel="icon" href="data:;base64,=" />
+
+    <style>
+
+      body {
+        width:95dvw;
+        height:95dvh;
+        margin:auto;
+      }
+      arcgis-map {
+        width:90dvw;
+        height:90dvh;
+
+        margin:auto;
+        margin-top:4.5%;
+      }
+    </style>
+      
+    <script type="module">
+
+      /* Configure OrgPortal before any other operations */
+      import esriConfig        from "@arcgis/core/config.js"
+      esriConfig.portalUrl = "https://crgis.cedar-rapids.org/arcgisportal"; 
+
+      /* ESRI Components style sheet */
+      import '@arcgis/core/assets/esri/themes/light/main.css';
+
+    </script>
+  </head>
+
+  <body>
+    <arcgis-map item-id="4a0539ad27484951a2bfc5cece1127a2"></arcgis-map>
+    
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
