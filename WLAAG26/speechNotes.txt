@@ -1,0 +1,198 @@
+SLIDE Title 
+
+Thank you all for being here, my name is Dane Atkins, and today, I’d like to talk a bit about Enterprise GIS and what that means for a metropolitan city. 
+ 
+
+SLIDE Abstract/Outline 
+
+Very briefly, I hope to introduce myself, and the city I work for, before asking ‘What is an Enterprise GIS’.  Once we have our foundations, I will review of a handful of projects from the last year, and see what lessons I share from those experiences. 
+
+ 
+
+SLIDE My background 
+
+Now then, like many of you I’m sure, I consider myself a geographer above all things; during the day, I just happen to work as a Geospatial Analyst.  Before that, I earned my PhD and served as a junior faculty member at Texas State University, and before that, I attended the University of Northern Iowa – any UNI folks in the crowd today? 
+
+My research topics were primarily transportation and sustainability focused, which happens to align with a few of my hobbies... 
+
+ 
+
+SLIDE The City: Geo 
+
+Today, I’m living in Cedar Rapids, which is situated along the Cedar River, straddling the Southern Iowa Drift Plain and Iowan Erosional Surface. 
+
+ 
+
+SLIDE The City: Climate 
+
+As many midwestern cities, we are in a humid, continental Koppen zone, with several months below freezing with a similar number of hot summer months. 
+
+ 
+
+SLIDE The City: Demographics 
+
+You may be surprised that Cedar Rapids is the 2nd largest city in Iowa, with over 135,000 residents, and about a quarter million in the greater metro area. 
+
+ 
+
+SLIDE The City: Industry 
+
+The city thrives, in part, because of its industrial operations, including grain processing, aerospace engineering, paper production, rail freight, and more.   
+
+ 
+
+SLIDE IT Dept 
+
+The city employs around 1500 full-time staff, and a few hundred more seasonal or temporary positions.  Most staff have either a laptop workstation or a mobile device to complete their tasks; some have both.  Managing that many users and devices requires a team.  We have front-line support in the form of a Customer Service team, and an Infrastructure team for maintaining servers, firewalls, switches, and endpoints.  There is also a dedicated team for 3rd party software support – things like payroll and accounting applications, public safety dispatch and records collection, and backend tools, like Microsoft SQL.   
+ 
+SLIDE GIS Team 
+
+Within IT, we have a team of around 10.  The team is comprised of myself, the analyst, as well as a senior systems engineer; then we have specialists dedicated to specific roles: parcel and roads editors, and specialists for various groups who perform everything from data editing and app building, to supporting field operations and validating infrastructure data. 
+
+ 
+
+SLIDE E.GIS 
+
+The GIS Team’s work is almost entirely encapsulated within our Enterprise GIS system, but ‘what is an Enterprise GIS?’ 
+ 
+At a basic level, it’s the central databases that make an ‘Enterprise’.  By leveraging SQL, or similar database software, you can safely allow multiple users to edit the same tables simultaneously.  The database even flags editing conflicts and helps managing user privileges – like who can edit the data versus who can read the data. 
+
+But really, there is more than just the databases – in fact, most users never have to look at the database, because they can read and write to the database through our GIS-web servers.  We currently have 5 dedicated GIS servers... 
+
+But we also have custom web pages and web applications, so we also have a dedicated web server, and an application-server for a vendor-supported asset management tool. 
+
+Oh, and we also leverage ArcGIS.com -- a cloud environment.  Currently, this is useful for public surveys, but mission-critical for Emergency Management Planning: we can’t be reliant on our local power and network in the event of a disaster. 
+
+SLIDE Permissions 
+
+But don't be fooled by the sales pitch. Enterprise systems have their own challenges.  Securing your valuable data is a two-way street, with managing user-permissions and user administration being a big part of the day-to-day.  And once you have a multi-user environment up and running, you can’t just add a new field to a table... 
+
+ 
+
+SLIDE Administration 
+
+Of course, the positive spin is: an Enterprise provides the tools to manage those users in the first place.  You can fine tune editing privileges to only allow insert and update, you can implement data versioning and automate replications, you can track individual users’ activities, and ultimately, provide a stable web presence for your organization. 
+
+SLIDE Why care? 
+
+Deep breath! 
+
+SLIDE CIP  
+
+Sometimes I find it easier to demonstrate: one of my first projects for the City of this Project Tracking map.  Before we built this tool, projects were added to the GIS system from the ‘bid schedule’: this meant projects weren’t added to the map until their designs were 90%, and it meant a GIS Specialist had to guess where the project was based on a 255-character title. 
+
+SLIDE CIP Editor 
+
+So for this project, the big step forward was simple providing the City’s Engineers with an interface for editing their own projects.   This meant projects were being added to the GIS system early in their design proposals, and subject matter experts were locating the projects on the map.   
+ 
+It was this simple editing interface that provided the City the confidence to make a public-facing splash page out of the GIS data. 
+
+SLIDE CIP Collaboration 
+
+But for me, building the Editor wasn’t the challenge.  The real challenge was getting everyone in the same room together: which fields are required?  How many different ‘Project Statuses’ are there?  What about ‘projects’ with multiple locations, like bids for sidewalk spot repairs or citywide tree removals? 
+ 
+While getting all the various team members together was part of the challenge, it was also critical to the success of the project. 
+
+SLIDE CIP Architecture 
+
+Now I don’t want to pretend building the application was ‘easy’ -- easy is a bad word anyway.  Behind the scenes, part of the expectation of my role is documentation: once I have all the moving parts working the way I want, I draw out the system schematic and write up any technical notes needed for future maintenance. 
+
+ 
+
+SLIDE blank intentional 
+
+SLIDE Street Inspector 
+
+I’ll be quick with this next project: I really can’t share many details anyway...  our Police Department handles parking concerns across the city, and they are really quite generous, usually giving several days of warnings before escalating to a civil citation and fine. 
+
+SLIDE Street Ins. Workflow 
+
+In the previous iteration of this application, it was possible for ‘Inspection records’ to get go missing because of an empty field, or an incorrectly set status. 
+
+So the first thing we did when we sat down with PD was to discuss the actual workflow; then, once we understood each step, we clarified: what data can we auto-fill and what data needs to be user-editable. 
+
+In the end, we built a custom form for each step.  The forms autofill most of the data the Officers needed, while still adding a space for ‘comments’ related to each step. 
+
+I like sharing this project because it really highlights one of the critical skills I’ve seen across the IT department: whether we’re trying to automate a process, or just trying to ensure data validity in a largely human-centric process, the requirement is always the same: you have to understand the workflow in order to build a system around it. 
+
+ 
+
+SLIDE blank intentional 
+
+SLIDE InfraView 
+
+If you haven’t tried one of my QR codes yet, this would be a good one!  This one is a massive project, and it’s still in development – I'm sharing our internal beta test today! 
+
+Many cities have a one stop “GIS Portal”, and the City of Cedar Rapids is no exception.  The City originally build the first Infrastructure Viewer in Web App Builder, a platform which is now deprecated and not long for this world.   
+
+And I’m sharing this project, not because of its complexity or the importance to the city, but because of how it came about: it started with a request for a few simple tools that we just couldn’t provide out of the box. So, we started looking at the Javascript SDK. 
+
+After I had shipped one tool, it became its own challenge to unpack everything in the SDK, and then to start stringing things together in useful ways... and before long, I had a template for modernizing our Infrastructure Viewer. 
+
+No one told me to start this project – it didn't even start as a project.  It was – honestly – a way to stay busy at work during downtime.  
+
+SLIDE InfraView Architecture 
+
+So the pitch here, is for continuous learning as a professional skill.  I’m standing at an academic conference, so naturally, I assume most of you are already inclined towards education and self-guided learning...  
+
+It’s worth stressing again – continuous learning is not just an academic skill, but a highly valued professional skill; a skill that can make you stand out in any organization, whether academic, government, or corporate. 
+
+ 
+
+SLIDE blank intentional 
+
+SLIDE Snowplow 
+
+I’m going to breeze through this one – but last winter, I was chosen as the technical lead on a public-facing snowplow map.  Behind the scenes, the technical architecture is one of our simpler applications. 
+
+SLIDE Snowplow (workflow) 
+
+But it started with a “Workflow Analysis”; when we do we plow?  who decides?  how many different ‘types’ of plowing do we do? 
+
+SLIDE Snowplow (learning) 
+
+Then came additional learning: new GPS equipment on the Fleet, new APIs, and writing Python as a service, rather than a simple scripting. 
+
+SLIDE Snowplow (collab) 
+
+Once we had the data pipelines, then we had to bring together the Fleet Operations team and the Public Communications team to discuss the look and feel of the map. 
+
+SLIDE Snowplow (collab) 
+
+Then we had to revise the backend to accomodate cutesy plow names – this was a request from Communication that ultimately had to be managed by Operations, with our GIS Technology as a facilitator. 
+
+SLIDE Snowplow (collab) 
+
+There was even more collaboration required to define the subtext for each plowing ‘mode’. 
+
+SLIDE Snowplow (collab) 
+
+And once the application was ready, it was a joint effort to get the word out – Communications handling social media, Operations handling the news, and myself as the technical lead presenting at City Council... 
+
+SLIDE Snowplow (workflow analysis) 
+
+And now that we’ve had one successful season with the system, we’re now reviewing the data we collected to reanalyze operations workflow, and working with the City Manager and Communications on how we can ‘make visible’ the excellent work that our City Staff performs. 
+
+SLIDE blank intentional 
+
+SLIDE Conclusions P.1 
+
+So what do I hope you take from this talk? 
+
+That if you’re interested in a professional GIS role, you’ll probably encounter an Enterprise system at some point in your career.  That these systems have their own unique challenges, but can that an Enterprise can also streamline data management. 
+
+And that, technical skills are essential for success – if you haven’t yet, I’d highly encourage you to explore Python or Javascript, depending on your goals.  If you can, experiment with both! 
+
+SLIDE Conclusion 2 
+
+But I also want you to recognize the value of Professional Skills.  There are a lot of different skills that we could include under this banner, but for me, as a Geospatial Analyst, I would emphasize Collaboration, Workflow Analysis, and Continuous learning as among the most important. 
+
+ 
+
+SLIDE References 
+
+Thank you for your time and attention today.  I promise, I tried to perform a literature review on Enterprise GIS, but came up empty handed – so instead, I wanted to share a list of folks who helped me develop both my technical and professional skills to date.   
+ 
+Thank you again – any questions? 
+
+ 
